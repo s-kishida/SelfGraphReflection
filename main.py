@@ -197,12 +197,18 @@ with st.sidebar:
                         p_type = "Line" if chart_type == "折れ線グラフ" else ("Scatter" if chart_type == "散布図" else "Bar")
                     
                     p_color = c_col.color_picker("色", default_colors[i % len(default_colors)], key=f"color_{col}")
+                    p_marker = "o"
                     if p_type == "Bar":
                         p_size = c_siz.number_input("太さ", 0.1, 2.0, 1.0, step=0.1, key=f"size_{col}")
                     else:
-                        p_size = c_siz.number_input("サイズ", 1.0, 50.0, 8.0 if p_type == "Scatter" else 3.0, step=1.0, key=f"size_{col}")
+                        c_siz_inner, c_mark_inner = c_siz.columns(2)
+                        p_size = c_siz_inner.number_input("サイズ", 1.0, 50.0, 8.0 if p_type == "Scatter" else 3.0, step=1.0, key=f"size_{col}")
+                        marker_map = {"○": "o", "□": "s", "△": "^", "▽": "v", "◇": "d", "×": "x", "＋": "+", "★": "*"}
+                        p_marker_label = c_mark_inner.selectbox("形", list(marker_map.keys()), key=f"marker_{col}")
+                        p_marker = marker_map[p_marker_label]
+                    
                     p_leg = c_leg.checkbox("凡例", value=True, key=f"leg_{col}")
-                    y_configs[col] = {"type": p_type, "color": p_color, "size": p_size, "show_legend": p_leg}
+                    y_configs[col] = {"type": p_type, "color": p_color, "size": p_size, "show_legend": p_leg, "marker": p_marker}
 
             active_ids = {1}
             if len(y_axes) >= 2:
@@ -493,9 +499,9 @@ if df is not None:
                     ax_prefix = f"ax{a_idx}" if a_idx > 1 else "ax"
                     
                     if p_type == "Line":
-                        target_ax.plot(x_plot, plot_df[col], marker='o', color=p_color, linewidth=p_size, markersize=p_size*2, label=p_label)
+                        target_ax.plot(x_plot, plot_df[col], marker=conf.get("marker", "o"), color=p_color, linewidth=p_size, markersize=p_size*2, label=p_label)
                     elif p_type == "Scatter":
-                        target_ax.scatter(x_plot, plot_df[col], s=p_size*10, color=p_color, label=p_label, alpha=0.7)
+                        target_ax.scatter(x_plot, plot_df[col], s=p_size*10, color=p_color, marker=conf.get("marker", "o"), label=p_label, alpha=0.7)
                     elif p_type == "Bar":
                         current_width = width * p_size
                         if len(bar_cols) > 0:
