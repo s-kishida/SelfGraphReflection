@@ -116,7 +116,7 @@ with st.sidebar:
                 
                 # カラム名にファイル名を付与
                 file_label = uploaded_file.name
-                temp_df.columns = [f"[{file_label}] {col}" for col in temp_df.columns]
+                temp_df.columns = [f"{col} [{file_label}]" for col in temp_df.columns]
                 dfs.append(temp_df)
             except Exception as e:
                 st.error(f"ファイル {uploaded_file.name} の読み込みに失敗しました: {e}")
