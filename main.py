@@ -267,6 +267,29 @@ with st.sidebar:
 
         
         st.divider()
+        st.header("⑤ 画像の設定")
+        show_title = st.checkbox("タイトルを表示する", value=True)
+        chart_title = ""
+        if show_title:
+            default_title = f"{chart_type}"
+            if y_axes and chart_type in ["折れ線グラフ", "散布図", "棒グラフ", "複合グラフ"]:
+                default_title = f"{', '.join(y_axes)} vs {x_axis}"
+            chart_title = st.text_input("グラフのタイトルを入力", value=default_title)
+            font_title = st.number_input("タイトルのフォントサイズ", 10, 50, 24)
+        
+        c_w, c_h = st.columns(2)
+        width_val = c_w.number_input("画像の横幅", 5.0, 30.0, 10.0, step=1.0)
+        height_val = c_h.number_input("画像の縦幅", 3.0, 30.0, 6.0, step=1.0)
+        
+        dpi_val = st.number_input("画像のDPI (高画質なら300推奨)", 72, 600, 150, step=50)
+        
+        aspect_choice = st.selectbox("縦横比の設定", ["自動", "1:1", "カスタム"], index=0)
+        aspect_val = "auto"
+        if aspect_choice == "1:1": aspect_val = "equal"
+        elif aspect_choice == "カスタム":
+            aspect_val = st.number_input("カスタム比率 (縦/横)", value=1.0, step=0.1)
+
+        st.divider()
         st.header("⑥ フィッティング設定")
         
         if "fittings" not in st.session_state:
@@ -333,28 +356,6 @@ with st.sidebar:
         
         st.session_state.fittings = new_fittings
         
-        st.divider()
-        st.header("画像の設定（その他）")
-        show_title = st.checkbox("タイトルを表示する", value=True)
-        chart_title = ""
-        if show_title:
-            default_title = f"{chart_type}"
-            if y_axes and chart_type in ["折れ線グラフ", "散布図", "棒グラフ", "複合グラフ"]:
-                default_title = f"{', '.join(y_axes)} vs {x_axis}"
-            chart_title = st.text_input("グラフのタイトルを入力", value=default_title)
-            font_title = st.number_input("タイトルのフォントサイズ", 10, 50, 24)
-        
-        c_w, c_h = st.columns(2)
-        width_val = c_w.number_input("画像の横幅", 5.0, 30.0, 10.0, step=1.0)
-        height_val = c_h.number_input("画像の縦幅", 3.0, 30.0, 6.0, step=1.0)
-        
-        dpi_val = st.number_input("画像のDPI (高画質なら300推奨)", 72, 600, 150, step=50)
-        
-        aspect_choice = st.selectbox("縦横比の設定", ["自動", "1:1", "カスタム"], index=0)
-        aspect_val = "auto"
-        if aspect_choice == "1:1": aspect_val = "equal"
-        elif aspect_choice == "カスタム":
-            aspect_val = st.number_input("カスタム比率 (縦/横)", value=1.0, step=0.1)
 
 
 # --- メインエリア ---
