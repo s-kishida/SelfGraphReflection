@@ -531,7 +531,19 @@ if df is not None:
 
                                 elif fit_cfg["type"] == "正弦波":
                                     def func(x, a, b, c, d): return a * np.sin(b * x + c) + d
-                                    p0 = [np.std(fit_y_clean) * 2**0.5, 2*np.pi / (max(fit_x_clean)-min(fit_x_clean)), 0, np.mean(fit_y_clean)]
+                                    # --- 初期値(p0)の高度な推定 ---
+                                    y_detrend = fit_y_clean - np.mean(fit_y_clean)
+                                    # フーリエ変換でメインの周波数を探す
+                                    fft_data = np.abs(np.fft.rfft(y_detrend))
+                                    # 0周波数(平均)を除いた最大値を探す
+                                    fft_data[0] = 0
+                                    freq_idx = np.argmax(fft_data)
+                                    # 平均的なデータ間隔から周波数に変換
+                                    avg_dx = np.mean(np.diff(fit_x_clean)) if len(fit_x_clean)>1 else 1.0
+                                    freqs = np.fft.rfftfreq(len(fit_y_clean), d=avg_dx)
+                                    b_guess = 2 * np.pi * freqs[freq_idx]
+                                    
+                                    p0 = [np.std(fit_y_clean) * 2**0.5, b_guess, 0, np.mean(fit_y_clean)]
                                     popt, _ = curve_fit(func, fit_x_clean, fit_y_clean, p0=p0)
                                     x_range = np.linspace(fit_cfg["range_min"], fit_cfg["range_max"], 200)
                                     ax.plot(x_range, func(x_range, *popt), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: y = {popt[0]:.2f} sin({popt[1]:.2f}x + {popt[2]:.2f}) + {popt[3]:.2f}")
