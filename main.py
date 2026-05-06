@@ -187,7 +187,7 @@ with st.sidebar:
                     st.write(f"**{col}**")
                     if chart_type == "複合グラフ":
                         c_typ, c_col, c_siz, c_leg = st.columns([2, 1, 1, 1])
-                        type_map = {"折れ線": "Line", "散布図": "Scatter", "棒グラフ": "Bar"}
+                        type_map = {"散布図": "Scatter", "折れ線": "Line", "棒グラフ": "Bar"}
                         p_type_label = c_typ.selectbox("種類", list(type_map.keys()), key=f"type_{col}")
                         p_type = type_map[p_type_label]
                     else:
