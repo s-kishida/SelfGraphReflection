@@ -14,66 +14,71 @@ def local_css():
         /* 全体の背景色（Pure White） */
         .stApp {
             background-color: #FFFFFF;
-            color: #1F2937;
+            color: #111827; /* より濃い黒 */
         }
-        /* サイドバーの調整 */
-        [data-testid="stSidebar"] {
+        /* サイドバー全体の背景とテキスト色 */
+        [data-testid="stSidebar"], [data-testid="stSidebar"] .stMarkdown p {
             background-color: #F9FAFB;
-            border-right: 1px solid #E5E7EB;
+            color: #111827 !important;
         }
         /* セクション見出し（FOREST） */
-        h1, h2, h3, h4, h5, h6 {
+        h1, h2, h3, h4, h5, h6, [data-testid="stSidebar"] h2 {
             color: #2E5B4E !important;
             font-weight: 700 !important;
         }
-        /* テキスト入力、セレクトボックス、マルチセレクト等の背景を白に固定 */
-        .stTextInput>div>div>input, 
-        .stSelectbox>div>div>div,
-        .stMultiSelect>div>div,
-        .stNumberInput>div>div>input,
-        .stTextArea>div>div>textarea {
+        /* 全ての入力系ウィジェットの背景を白、文字を黒に強制 */
+        .stTextInput input, 
+        .stSelectbox div[data-baseweb="select"] > div,
+        .stMultiSelect div[data-baseweb="select"] > div,
+        .stNumberInput input,
+        .stTextArea textarea {
             background-color: #FFFFFF !important;
-            color: #1F2937 !important;
+            color: #111827 !important;
             border: 1px solid #D1D5DB !important;
         }
-        /* マルチセレクトのタグ */
+        /* Number Input の +/- ボタンや背景 */
+        .stNumberInput div[data-baseweb="input"] {
+            background-color: #FFFFFF !important;
+        }
+        /* エキスパンダーのタイトルと背景 */
+        .stExpander {
+            background-color: #FFFFFF !important;
+            border: 1px solid #E5E7EB !important;
+        }
+        .stExpander details summary {
+            color: #111827 !important;
+            font-weight: 600;
+        }
+        /* チェックボックスのラベル色 */
+        .stCheckbox label {
+            color: #111827 !important;
+        }
+        /* マルチセレクトの選択済みタグ */
         span[data-baseweb="tag"] {
             background-color: #2E5B4E !important;
-            color: white !important;
+            color: #FFFFFF !important;
         }
-        /* ボタンのデザイン：背景白ベースに「反転」 */
+        /* ボタンのデザイン（反転：白背景に緑枠） */
         .stButton>button, .stDownloadButton>button {
             background-color: #FFFFFF !important;
             color: #2E5B4E !important;
             border: 2px solid #2E5B4E !important;
             border-radius: 8px !important;
-            font-weight: bold;
+            font-weight: 700;
             width: 100%;
-            transition: all 0.2s ease;
         }
         .stButton>button:hover, .stDownloadButton>button:hover {
             background-color: #2E5B4E !important;
             color: #FFFFFF !important;
         }
-        /* 強調ラベル（CHARCOAL） */
-        .stMarkdown p {
-            color: #374151;
+        /* キャプションや小さい文字 */
+        .stCaption, caption {
+            color: #4B5563 !important;
         }
-        /* エキスパンダーの調整 */
-        .stExpander {
-            background-color: #FFFFFF !important;
-            border: 1px solid #E5E7EB !important;
-            border-radius: 8px !important;
-        }
-        /* ファイルアップローダーの背景 */
+        /* ファイルアップローダー */
         [data-testid="stFileUploader"] {
             background-color: #F3F4F6;
-            padding: 10px;
-            border-radius: 8px;
-        }
-        /* ページネーション */
-        .page-num-row button {
-            color: #2E5B4E !important;
+            border: 1px dashed #D1D5DB;
         }
         </style>
     """, unsafe_allow_html=True)
