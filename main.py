@@ -165,17 +165,10 @@ with st.sidebar:
             xmax_val = c_xmax.number_input("x軸の最大範囲 (空白で自動)", value=None, step=1.0, format="%g")
             
             with st.expander("x軸の目盛り・グリッド詳細"):
-                c_xm, c_xmi = st.columns(2)
-                x_major_step = c_xm.number_input("主目盛りの間隔", value=None, step=1.0, format="%g", key="x_maj")
-                x_minor_step = c_xmi.number_input("副目盛りの間隔", value=None, step=1.0, format="%g", key="x_min")
-                
-                grid_major_x = st.checkbox("主グリッド表示", value=True, key="x_grid_maj")
-                grid_minor_x = st.checkbox("副グリッド表示", value=False, key="x_grid_min")
-                
-                c_gc, c_ga = st.columns(2)
-                grid_color_x = c_gc.color_picker("グリッド色", value="#D1D5DB", key="x_grid_color")
-                grid_alpha_x = c_ga.number_input("透過率", 0.0, 1.0, 0.5, step=0.1, key="x_grid_alpha")
-                
+                x_major_step = st.number_input("主目盛りの間隔", value=None, step=1.0, format="%g", key="x_maj")
+                x_minor_step = st.number_input("副目盛りの間隔", value=None, step=1.0, format="%g", key="x_min")
+                grid_major_x = st.checkbox("主目盛りのグリッドを表示", value=True, key="x_grid_maj")
+                grid_minor_x = st.checkbox("副目盛りのグリッドを表示", value=False, key="x_grid_min")
                 tick_dir_label_x = st.selectbox("目盛り線の向き", list(TICK_DIR_MAP.keys()), index=0, key="x_tick_dir")
                 tick_dir_x = TICK_DIR_MAP[tick_dir_label_x]
         else:
@@ -183,10 +176,8 @@ with st.sidebar:
 
         st.divider()
         st.header("④ y軸の設定")
-        grid_color_x = st.session_state.get("x_grid_color", "#D1D5DB")
-        grid_alpha_x = st.session_state.get("x_grid_alpha", 0.5)
         y_axis_mapping = {}
-        axis_configs = {1: {"name": y_axes[0] if y_axes else "", "unit": "", "min": None, "max": None, "label_size": 18, "tick_size": 14, "major": None, "minor": None, "grid_maj": True, "grid_min": False, "dir": "in", "grid_color": "#D1D5DB", "grid_alpha": 0.5}}
+        axis_configs = {1: {"name": y_axes[0] if y_axes else "", "unit": "", "min": None, "max": None, "label_size": 18, "tick_size": 14, "major": None, "minor": None, "grid_maj": True, "grid_min": False, "dir": "in"}}
         
         if y_axes and chart_type not in ["円グラフ", "ヒストグラム", "箱ひげ図", "バイオリンプロット"]:
             # 各系列の詳細設定（色やサイズ）
@@ -256,9 +247,6 @@ with st.sidebar:
                     
                     a_grid_maj = st.checkbox("主グリッド表示", value=True if idx==1 else False, key=f"agrid_maj_{idx}")
                     a_grid_min = st.checkbox("副グリッド表示", value=False, key=f"agrid_min_{idx}")
-                    c_gc, c_ga = st.columns(2)
-                    a_grid_color = c_gc.color_picker("グリッド色", value="#D1D5DB", key=f"agrid_color_{idx}")
-                    a_grid_alpha = c_ga.number_input("透過率", 0.0, 1.0, 0.5, step=0.1, key=f"agrid_alpha_{idx}")
                     a_tick_dir_label = st.selectbox("目盛り線の向き", list(TICK_DIR_MAP.keys()), index=0, key=f"adir_{idx}")
                     a_tick_dir = TICK_DIR_MAP[a_tick_dir_label]
                     
@@ -266,8 +254,7 @@ with st.sidebar:
                         "name": a_name, "unit": a_unit, "min": a_min, "max": a_max, 
                         "label_size": a_font_l, "tick_size": a_font_t,
                         "major": a_maj_step, "minor": a_min_step,
-                        "grid_maj": a_grid_maj, "grid_min": a_grid_min, "dir": a_tick_dir,
-                        "grid_color": a_grid_color, "grid_alpha": a_grid_alpha
+                        "grid_maj": a_grid_maj, "grid_min": a_grid_min, "dir": a_tick_dir
                     }
         else:
             for col in y_axes: y_axis_mapping[col] = 1
@@ -304,7 +291,7 @@ with st.sidebar:
 
         st.divider()
         st.header("⑥ フィッティング")
-        st.caption("「フィッティング（近似）」とは、バラバラな点の集まりに対して、そのデータの傾向を最もよく表す「線」を引くことです。中学校で習う「直線近似」もその一種です。")
+        st.caption("「フィッティング（近似）」とは、バラバラな点の集まりに対して、そのデータの傾向を最もよく表す「線」を引くことです。中学校・高校で習う「直線近似」もその一種です。必要であれば使ってください．")
         
         if "fittings" not in st.session_state:
             st.session_state.fittings = []
@@ -635,11 +622,8 @@ if df is not None:
                 if x_major_step: ax.xaxis.set_major_locator(MultipleLocator(x_major_step))
                 if x_minor_step: ax.xaxis.set_minor_locator(MultipleLocator(x_minor_step))
                 
-                if x_major_step or x_minor_step or grid_minor_x:
-                    ax.minorticks_on()
-                
-                ax.grid(grid_major_x, which='major', axis='x', linestyle='--', alpha=grid_alpha_x, color=grid_color_x)
-                ax.grid(grid_minor_x, which='minor', axis='x', linestyle=':', alpha=grid_alpha_x * 0.6, color=grid_color_x)
+                ax.grid(grid_major_x, which='major', axis='x', linestyle='--', alpha=0.5, color='#E5E7EB')
+                ax.grid(grid_minor_x, which='minor', axis='x', linestyle=':', alpha=0.3, color='#E5E7EB')
 
                 # Y軸の個別設定を適用
                 for i, target_ax in axes.items():
@@ -655,8 +639,8 @@ if df is not None:
                     if conf["major"]: target_ax.yaxis.set_major_locator(MultipleLocator(conf["major"]))
                     if conf["minor"]: target_ax.yaxis.set_minor_locator(MultipleLocator(conf["minor"]))
                     
-                    target_ax.grid(conf["grid_maj"], which='major', axis='y', linestyle='--', alpha=conf.get("grid_alpha", 0.5), color=conf.get("grid_color", "#D1D5DB"))
-                    target_ax.grid(conf["grid_min"], which='minor', axis='y', linestyle=':', alpha=conf.get("grid_alpha", 0.5) * 0.6, color=conf.get("grid_color", "#D1D5DB"))
+                    target_ax.grid(conf["grid_maj"], which='major', axis='y', linestyle='--', alpha=0.5, color='#E5E7EB')
+                    target_ax.grid(conf["grid_min"], which='minor', axis='y', linestyle=':', alpha=0.3, color='#E5E7EB')
 
             elif chart_type == "ヒストグラム":
                 axes = {1: ax}
