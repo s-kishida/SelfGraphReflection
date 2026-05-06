@@ -259,7 +259,7 @@ with st.sidebar:
         with st.expander("グリッドと目盛り線の向き"):
             grid_major = st.checkbox("主目盛りのグリッドの表示", value=True)
             grid_minor = st.checkbox("副目盛りのグリッドの表示", value=False)
-            tick_dir = st.selectbox("目盛り線のの向き", ["内側", "外側", "両方"], index=0)
+            tick_dir = st.selectbox("目盛り線のの向き", ["in", "out", "inout"], index=0)
 
 # --- メインエリア ---
 if df is not None:
@@ -338,12 +338,12 @@ if df is not None:
         if y_axes and chart_type in ["折れ線グラフ", "散布図", "棒グラフ", "複合グラフ", "円グラフ"]:
             for col in y_axes:
                 if not pd.api.types.is_numeric_dtype(df[col]):
-                    st.warning(f"⚠️ '{col}' は数値データではないため、正しく表示されない可能性があります。数値の列を選択してください。")
+                    st.warning(f"'{col}' は数値データではないため、正しく表示されない可能性があります。数値の列を選択してください。")
             
             # カテゴリカルなX軸で重複がある場合、値を合計するオプション（自動適用）
             if x_axis and not pd.api.types.is_numeric_dtype(df[x_axis]):
                 if df[x_axis].duplicated().any():
-                    st.info(f"💡 '{x_axis}' に重複があるため、値を合計して表示します。")
+                    st.info(f"'{x_axis}' に重複があるため、値を合計して表示します。")
                     plot_df = df.groupby(x_axis, sort=False)[y_axes].sum().reset_index()
         
         try:
