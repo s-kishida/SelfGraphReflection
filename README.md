@@ -1,4 +1,4 @@
-# GraphyPad
+# Self-Graph Reflection
 Visualization tool for students.
 
 ## Deployment Status

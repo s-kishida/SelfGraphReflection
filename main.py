@@ -11,48 +11,51 @@ from matplotlib.ticker import MultipleLocator
 def local_css():
     st.markdown("""
         <style>
-        /* 全体の背景色（GitHubダーク） */
+        /* 全体の背景色（SAND） */
         .stApp {
-            background-color: #0d1117;
-            color: #c9d1d9;
+            background-color: #F7F3EC;
+            color: #1F2937;
         }
-        /* サイドバーの背景色 */
+        /* サイドバーの背景色（SNOW） */
         [data-testid="stSidebar"] {
-            background-color: #161b22;
-            border-right: 1px solid #30363d;
+            background-color: #FAFAFA;
+            border-right: 1px solid #E5E7EB;
         }
         /* テキスト入力やセレクトボックス */
         .stTextInput>div>div>input, .stSelectbox>div>div>div {
-            background-color: #0d1117 !important;
-            color: #c9d1d9 !important;
-            border-color: #30363d !important;
+            background-color: #FFFFFF !important;
+            color: #1F2937 !important;
+            border-color: #E5E7EB !important;
         }
-        /* セクション見出し */
-        h1, h2, h3 {
-            color: #58a6ff !important;
+        /* セクション見出し（FOREST） */
+        h1, h2, h3, h4, h5, h6 {
+            color: #2E5B4E !important;
             font-weight: 600 !important;
         }
-        /* ボタンのデザイン */
+        /* ボタンのデザイン（FOREST） */
         .stButton>button {
-            background-color: #238636 !important;
+            background-color: #2E5B4E !important;
             color: white !important;
             border: none !important;
-            border-radius: 6px !important;
+            border-radius: 8px !important;
             font-weight: bold;
             width: 100%;
+            transition: all 0.3s ease;
         }
         .stButton>button:hover {
-            background-color: #2ea043 !important;
+            background-color: #A7C1B2 !important;
+            color: white !important;
         }
-        /* 強調ラベル */
+        /* 強調ラベル（CHARCOAL） */
         .stMarkdown p {
+            color: #4B5563;
             font-size: 0.95rem;
         }
-        /* Google風ページネーション用スタイル */
+        /* Google風ページネーション用スタイル（FOREST） */
         .page-num-row button {
             background: none !important;
             border: none !important;
-            color: #8ab4f8 !important;
+            color: #2E5B4E !important;
             padding: 0 !important;
             min-height: 24px !important;
             line-height: 1.5 !important;
@@ -60,7 +63,16 @@ def local_css():
         }
         .page-num-row button:hover {
             text-decoration: underline !important;
-            color: #d1d5da !important;
+            color: #A7C1B2 !important;
+        }
+        /* 追加：エキスパンダーや仕切り線の調整 */
+        .stExpander {
+            background-color: #FFFFFF !important;
+            border: 1px solid #E5E7EB !important;
+            border-radius: 8px !important;
+        }
+        hr {
+            border-color: #E5E7EB !important;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -68,8 +80,8 @@ def local_css():
 local_css()
 
 # タイトル（以前のスタイル）
-st.title("GraphyPad")
-st.markdown("<p style='color: #8b949e; margin-top: -15px;'>高校生のためのグラフ作成ツール</p>", unsafe_allow_html=True)
+st.title("Self-Graph Reflection")
+st.markdown("<p style='color: #4B5563; margin-top: -15px;'>高校生のためのグラフ作成ツール</p>", unsafe_allow_html=True)
 
 # --- サイドバー：以前のセクション構成を再現 ---
 with st.sidebar:
@@ -105,8 +117,8 @@ with st.sidebar:
             
             y_axes = st.multiselect("Y-Axis (縦軸: 複数選択可)", selectable_y, default=[numeric_cols[0]] if numeric_cols else [])
             
-            # デフォルト配色
-            default_colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"]
+            # デフォルト配色（イメージのパレットに基づいた配色）
+            default_colors = ["#2E5B4E", "#A7C1B2", "#F2C94C", "#4B5563", "#768B7E", "#E09E8F", "#8FA2E0", "#E0C38F"]
             
             y_configs = {}
             if y_axes:
@@ -275,8 +287,8 @@ if df is not None:
                 with p_cols[i-1]:
                     st.markdown("<div class='page-num-row'>", unsafe_allow_html=True)
                     if i == st.session_state.page_num:
-                        # 現在のページは数字のみ（リンクにしない）
-                        st.markdown(f"<div style='text-align:center; color:white; font-size:18px; font-weight:bold; margin-top:5px;'>{i}</div>", unsafe_allow_html=True)
+                        # 現在のページは強調表示
+                        st.markdown(f"<div style='text-align:center; color:#2E5B4E; font-size:18px; font-weight:bold; margin-top:5px; border-bottom: 2px solid #2E5B4E;'>{i}</div>", unsafe_allow_html=True)
                     else:
                         if st.button(str(i), key=f"pg_{i}"):
                             st.session_state.page_num = i
@@ -305,8 +317,8 @@ if df is not None:
         st.info("👈 サイドバーで描画するデータを選択してください。")
     else:
         # グラフ作成
-        fig, ax = plt.subplots(figsize=(width_val, height_val), facecolor='white')
-        ax.set_facecolor('white')
+        fig, ax = plt.subplots(figsize=(width_val, height_val), facecolor='#FAFAFA')
+        ax.set_facecolor('#FAFAFA')
         
         code_snippets = []
         
@@ -413,8 +425,8 @@ if df is not None:
                     a_label_fs = conf.get("label_size", font_label_global)
                     a_tick_fs = conf.get("tick_size", font_tick_global)
                     
-                    target_ax.set_ylabel(fmt(a_name, a_unit), fontsize=a_label_fs, color='black')
-                    target_ax.tick_params(axis='y', labelsize=a_tick_fs, colors='black')
+                    target_ax.set_ylabel(fmt(a_name, a_unit), fontsize=a_label_fs, color='#1F2937')
+                    target_ax.tick_params(axis='y', labelsize=a_tick_fs, colors='#1F2937')
                     
                     if a_min is not None: target_ax.set_ylim(bottom=a_min)
                     if a_max is not None: target_ax.set_ylim(top=a_max)
@@ -450,9 +462,9 @@ if df is not None:
 
 
             if chart_type != "円グラフ":
-                ax.set_xlabel(fmt(x_name, x_unit) or (x_axis if x_axis else ""), fontsize=font_label_global, color='black')
+                ax.set_xlabel(fmt(x_name, x_unit) or (x_axis if x_axis else ""), fontsize=font_label_global, color='#1F2937')
             
-            ax.set_title(chart_title, fontsize=font_title, color='black', pad=20)
+            ax.set_title(chart_title, fontsize=font_title, color='#1F2937', pad=20)
             
             if len(y_axes) > 1 and chart_type not in ["円グラフ", "ヒストグラム"]:
                 # 全ての軸から凡例情報を収集
@@ -466,7 +478,7 @@ if df is not None:
             elif chart_type == "ヒストグラム":
                 ax.legend()
                 
-            ax.tick_params(labelsize=font_tick_global, colors='black')
+            ax.tick_params(labelsize=font_tick_global, colors='#1F2937')
             
             # --- 目盛・グリッドの詳細設定適用 ---
             if chart_type not in ["円グラフ", "ヒストグラム", "箱ひげ図", "バイオリンプロット"]:
@@ -481,16 +493,16 @@ if df is not None:
                 if y_minor_step: ax.yaxis.set_minor_locator(MultipleLocator(y_minor_step))
                 
                 # 目盛自体の見た目調整
-                ax.tick_params(which='major', labelsize=font_tick_global, colors='black', length=6, direction=tick_dir)
-                ax.tick_params(which='minor', colors='black', length=3, direction=tick_dir)
+                ax.tick_params(which='major', labelsize=font_tick_global, colors='#1F2937', length=6, direction=tick_dir)
+                ax.tick_params(which='minor', colors='#1F2937', length=3, direction=tick_dir)
                 
                 # グリッド
                 if grid_major:
-                    ax.grid(True, which='major', linestyle='--', alpha=0.3, color='gray')
+                    ax.grid(True, which='major', linestyle='--', alpha=0.5, color='#E5E7EB')
                 else:
                     ax.grid(False, which='major')
                 if grid_minor:
-                    ax.grid(True, which='minor', linestyle=':', alpha=0.2, color='gray')
+                    ax.grid(True, which='minor', linestyle=':', alpha=0.3, color='#E5E7EB')
                 else:
                     ax.grid(False, which='minor')
 
