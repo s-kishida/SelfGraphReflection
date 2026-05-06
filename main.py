@@ -97,18 +97,34 @@ st.markdown("<p style='color: #374151; margin-top: -15px;'>中学生・高校生
 # --- サイドバー ---
 with st.sidebar:
     st.header("① データのインポート")
-    uploaded_file = st.file_uploader("CSVファイルを選択", type="csv")
+    uploaded_files = st.file_uploader("CSVファイルを選択 (複数可)", type="csv", accept_multiple_files=True)
     
     df = None
-    if uploaded_file:
-        try:
+    if uploaded_files:
+        dfs = []
+        for uploaded_file in uploaded_files:
             try:
-                df = pd.read_csv(uploaded_file)
-            except UnicodeDecodeError:
+                # 文字コード判定
+                content = uploaded_file.read()
                 uploaded_file.seek(0)
-                df = pd.read_csv(uploaded_file, encoding='shift-jis')
-        except Exception as e:
-            st.error(f"Error: {e}")
+                try:
+                    content.decode("utf-8")
+                    temp_df = pd.read_csv(uploaded_file, encoding="utf-8")
+                except UnicodeDecodeError:
+                    uploaded_file.seek(0)
+                    temp_df = pd.read_csv(uploaded_file, encoding="shift-jis")
+                
+                # カラム名にファイル名を付与
+                file_label = uploaded_file.name
+                temp_df.columns = [f"[{file_label}] {col}" for col in temp_df.columns]
+                dfs.append(temp_df)
+            except Exception as e:
+                st.error(f"ファイル {uploaded_file.name} の読み込みに失敗しました: {e}")
+        
+        if dfs:
+            # 横方向に全データを結合
+            df = pd.concat(dfs, axis=1)
+            st.success(f"{len(uploaded_files)} 個のファイルを読み込みました。")
 
     if df is not None:
         # デフォルト設定の初期化（エラー防止）
