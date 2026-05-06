@@ -159,7 +159,6 @@ with st.sidebar:
             c_xfl, c_xft = st.columns(2)
             font_label_x = c_xfl.number_input("軸の名前のフォントサイズ", 10, 40, 18, key="x_label_fs")
             font_tick_x = c_xft.number_input("目盛りの値のフォントサイズ", 8, 30, 14, key="x_tick_fs")
-            italic_label_x = st.checkbox("軸の名前を斜体にする", value=False, key="x_italic")
             
             c_xmin, c_xmax = st.columns(2)
             xmin_val = c_xmin.number_input("x軸の最小範囲 (空白で自動)", value=None, step=1.0, format="%g")
@@ -178,7 +177,7 @@ with st.sidebar:
         st.divider()
         st.header("④ y軸の設定")
         y_axis_mapping = {}
-        axis_configs = {1: {"name": y_axes[0] if y_axes else "", "unit": "", "min": None, "max": None, "label_size": 18, "tick_size": 14, "major": None, "minor": None, "grid_maj": True, "grid_min": False, "dir": "in", "italic": False}}
+        axis_configs = {1: {"name": y_axes[0] if y_axes else "", "unit": "", "min": None, "max": None, "label_size": 18, "tick_size": 14, "major": None, "minor": None, "grid_maj": True, "grid_min": False, "dir": "in"}}
         
         if y_axes and chart_type not in ["円グラフ", "ヒストグラム", "箱ひげ図", "バイオリンプロット"]:
             # 各系列の詳細設定（色やサイズ）
@@ -234,8 +233,6 @@ with st.sidebar:
                     a_unit = c_u.text_input(f"軸の単位", key=f"aunit_{idx}")
                     st.caption("TeX形式（例: \$x\$）が使用できます。斜体や数式・添え字を使いたい場合に利用してください。")
 
-                    a_italic = st.checkbox("軸の名前を斜体にする", value=False, key=f"aitalic_{idx}")
-                    
                     c_mi, c_ma = st.columns(2)
                     a_min = c_mi.number_input(f"最小範囲", value=None, step=1.0, format="%g", key=f"amin_{idx}")
                     a_max = c_ma.number_input(f"最大範囲", value=None, step=1.0, format="%g", key=f"amax_{idx}")
@@ -257,8 +254,7 @@ with st.sidebar:
                         "name": a_name, "unit": a_unit, "min": a_min, "max": a_max, 
                         "label_size": a_font_l, "tick_size": a_font_t,
                         "major": a_maj_step, "minor": a_min_step,
-                        "grid_maj": a_grid_maj, "grid_min": a_grid_min, "dir": a_tick_dir,
-                        "italic": a_italic
+                        "grid_maj": a_grid_maj, "grid_min": a_grid_min, "dir": a_tick_dir
                     }
         else:
             for col in y_axes: y_axis_mapping[col] = 1
@@ -524,7 +520,7 @@ if df is not None:
                     ax.set_xticklabels(plot_df[x_axis])
                 
                 # X軸の詳細設定
-                ax.set_xlabel(fmt(x_name, x_unit), fontsize=font_label_x, color='#1F2937', fontstyle='italic' if italic_label_x else 'normal')
+                ax.set_xlabel(fmt(x_name, x_unit), fontsize=font_label_x, color='#1F2937')
                 ax.tick_params(axis='x', labelsize=font_tick_x, colors='#1F2937', direction=tick_dir_x)
                 
                 # --- フィッティング処理 ---
@@ -630,7 +626,7 @@ if df is not None:
                 # Y軸の個別設定を適用
                 for i, target_ax in axes.items():
                     conf = axis_configs.get(i, {})
-                    target_ax.set_ylabel(fmt(conf["name"], conf["unit"]), fontsize=conf["label_size"], color='#1F2937', fontstyle='italic' if conf.get("italic") else 'normal')
+                    target_ax.set_ylabel(fmt(conf["name"], conf["unit"]), fontsize=conf["label_size"], color='#1F2937')
                     target_ax.tick_params(axis='y', labelsize=conf["tick_size"], colors='#1F2937', direction=conf["dir"])
                     
                     if conf["min"] is not None: target_ax.set_ylim(bottom=conf["min"])
