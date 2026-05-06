@@ -6,6 +6,8 @@ import io
 import json
 import numpy as np
 from matplotlib.ticker import MultipleLocator
+from scipy.optimize import curve_fit
+import re
 
 # --- デザイン：以前のカスタムCSSをStreamlitに注入 ---
 def local_css():
@@ -253,8 +255,23 @@ with st.sidebar:
                     axis_configs[1]["min"] = st.number_input("最小範囲", value=None)
                     axis_configs[1]["max"] = st.number_input("最大範囲", value=None)
 
+        
         st.divider()
-        st.header("⑤ 画像の設定")
+        st.header("⑥ フィッティング設定")
+        fit_type = st.selectbox("フィッティングの種類", ["なし", "直線近似 (y = ax + b)", "カスタム数式"], key="fit_type")
+        
+        fit_config = {"type": fit_type}
+        if fit_type != "なし":
+            if y_axes:
+                fit_config["target"] = st.selectbox("対象データ", y_axes, key="fit_target")
+                if fit_type == "カスタム数式":
+                    st.info("変数 x と係数 (a, b, c...) を使用したPython形式の数式を入力してください。例: a * x**2 + b * x + c")
+                    fit_config["formula"] = st.text_input("数式入力", value="a * x + b", key="fit_formula")
+            else:
+                st.warning("y軸のデータを選択してください。")
+        
+        st.divider()
+        st.header("画像の設定（その他）")
         show_title = st.checkbox("タイトルを表示する", value=True)
         chart_title = ""
         if show_title:
@@ -428,6 +445,55 @@ if df is not None:
                 # X軸の詳細設定
                 ax.set_xlabel(fmt(x_name, x_unit), fontsize=font_label_x, color='#1F2937', fontstyle='italic' if italic_label_x else 'normal')
                 ax.tick_params(axis='x', labelsize=font_tick_x, colors='#1F2937', direction=tick_dir_x)
+                
+                # --- フィッティング処理 ---
+                if fit_config.get("type") != "なし" and "target" in fit_config:
+                    target_col = fit_config["target"]
+                    if target_col in plot_df.columns:
+                        fit_x = plot_df[x_axis].values if not use_index_x else x_plot
+                        fit_y = plot_df[target_col].values
+                        
+                        # 数値データのみを抽出（NaN/Infを除去）
+                        mask = np.isfinite(fit_x) & np.isfinite(fit_y)
+                        fit_x = fit_x[mask]
+                        fit_y = fit_y[mask]
+                        
+                        if len(fit_x) > 1:
+                            try:
+                                if fit_config["type"] == "直線近似 (y = ax + b)":
+                                    z = np.polyfit(fit_x, fit_y, 1)
+                                    p = np.poly1d(z)
+                                    x_range = np.linspace(min(fit_x), max(fit_x), 100)
+                                    ax.plot(x_range, p(x_range), "--", color="red", alpha=0.8, label=f"Fit: y={z[0]:.3f}x + {z[1]:.3f}")
+                                
+                                elif fit_config["type"] == "カスタム数式":
+                                    formula = fit_config["formula"]
+                                    # パラメータ抽出 (a, b, c... x以外の一文字の変数)
+                                    params_found = sorted(list(set(re.findall(r'\b([a-zA-Z])\b', formula)) - {'x', 'e'}))
+                                    
+                                    if not params_found:
+                                        st.error("数式に係数（a, bなど）が見つかりません。")
+                                    else:
+                                        # ダイナミックな関数の定義
+                                        def f(x, *args):
+                                            ctx = {"x": x, "np": np, "math": np}
+                                            for name, val in zip(params_found, args):
+                                                ctx[name] = val
+                                            return eval(formula, {"__builtins__": None}, ctx)
+                                        
+                                        popt, _ = curve_fit(f, fit_x, fit_y, p0=[1.0]*len(params_found))
+                                        x_range = np.linspace(min(fit_x), max(fit_x), 100)
+                                        
+                                        # 凡例用のラベル作成
+                                        label_parts = []
+                                        for name, val in zip(params_found, popt):
+                                            label_parts.append(f"{name}={val:.3f}")
+                                        fit_label = f"Fit: {formula} ({', '.join(label_parts)})"
+                                        
+                                        ax.plot(x_range, f(x_range, *popt), "--", color="red", alpha=0.8, label=fit_label)
+                            except Exception as e:
+                                st.error(f"フィッティングに失敗しました: {e}")
+                
                 if xmin_val is not None: ax.set_xlim(left=xmin_val)
                 if xmax_val is not None: ax.set_xlim(right=xmax_val)
                 
@@ -484,13 +550,15 @@ if df is not None:
                 ax.set_title(chart_title, fontsize=font_title, color='#1F2937', pad=20)
             
             # 凡例
-            if len(y_axes) > 1 and chart_type not in ["円グラフ", "ヒストグラム"]:
+            if chart_type not in ["円グラフ", "ヒストグラム"]:
                 h_all, l_all = [], []
                 for a_idx in sorted(axes.keys()):
                     h, l = axes[a_idx].get_legend_handles_labels()
                     h_all.extend(h)
                     l_all.extend(l)
-                if h_all:
+                
+                # y_axesが1つでも、フィッティングがある場合は表示したい
+                if h_all and (len(y_axes) > 1 or fit_config.get("type") != "なし"):
                     ax.legend(h_all, l_all)
             elif chart_type == "ヒストグラム":
                 ax.legend()
