@@ -13,12 +13,12 @@ def local_css():
         <style>
         /* 全体の背景色（Pure White） */
         .stApp {
-            background-color: #FFFFFF;
+            background-color: #DCEAF7;
             color: #111827; /* より濃い黒 */
         }
         /* サイドバー全体の背景とテキスト色 */
         [data-testid="stSidebar"], [data-testid="stSidebar"] .stMarkdown p {
-            background-color: #F9FAFB;
+            background-color: #DCEAF7;
             color: #111827 !important;
         }
         /* セクション見出し（FOREST） */
