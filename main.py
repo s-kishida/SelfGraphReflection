@@ -42,7 +42,7 @@ def local_css():
         }
         /* エキスパンダーのタイトルと背景 */
         .stExpander {
-            background-color: #FFFFFF !important;
+            background-color: #FAFAFA !important;
             border: 1px solid #1F2937 !important;
         }
         .stExpander details summary {
