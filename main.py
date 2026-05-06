@@ -750,8 +750,7 @@ df = pd.read_csv('data.csv')
 {agg_snippet}
 
 fig, ax = plt.subplots(figsize=({width_val}, {height_val}))
-
-# X軸の設定
+"""
                 # X軸の設定
                 full_code += f"ax.set_xlabel('{fmt(x_name, x_unit)}', fontsize={font_label_x})\n"
                 full_code += f"ax.tick_params(axis='x', labelsize={font_tick_x}, direction='{tick_dir_x}')\n"
