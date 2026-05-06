@@ -165,12 +165,17 @@ with st.sidebar:
             xmax_val = c_xmax.number_input("x軸の最大範囲 (空白で自動)", value=None, step=1.0, format="%g")
             
             with st.expander("x軸の目盛り・グリッド詳細"):
-                x_major_step = st.number_input("主目盛りの間隔", value=None, step=1.0, format="%g", key="x_maj")
-                x_minor_step = st.number_input("副目盛りの間隔", value=None, step=1.0, format="%g", key="x_min")
-                grid_major_x = st.checkbox("主目盛りのグリッドを表示", value=True, key="x_grid_maj")
-                grid_minor_x = st.checkbox("副目盛りのグリッドを表示", value=False, key="x_grid_min")
-                grid_color_x = st.color_picker("グリッド線の色 (x軸)", value="#D1D5DB", key="x_grid_color")
-                grid_alpha_x = st.number_input("グリッドの透過率 (x軸)", 0.0, 1.0, 0.5, step=0.1, key="x_grid_alpha")
+                c_xm, c_xmi = st.columns(2)
+                x_major_step = c_xm.number_input("主目盛りの間隔", value=None, step=1.0, format="%g", key="x_maj")
+                x_minor_step = c_xmi.number_input("副目盛りの間隔", value=None, step=1.0, format="%g", key="x_min")
+                
+                grid_major_x = st.checkbox("主グリッド表示", value=True, key="x_grid_maj")
+                grid_minor_x = st.checkbox("副グリッド表示", value=False, key="x_grid_min")
+                
+                c_gc, c_ga = st.columns(2)
+                grid_color_x = c_gc.color_picker("グリッド色", value="#D1D5DB", key="x_grid_color")
+                grid_alpha_x = c_ga.number_input("透過率", 0.0, 1.0, 0.5, step=0.1, key="x_grid_alpha")
+                
                 tick_dir_label_x = st.selectbox("目盛り線の向き", list(TICK_DIR_MAP.keys()), index=0, key="x_tick_dir")
                 tick_dir_x = TICK_DIR_MAP[tick_dir_label_x]
         else:
@@ -629,6 +634,9 @@ if df is not None:
                     ax.minorticks_on()
                 if x_major_step: ax.xaxis.set_major_locator(MultipleLocator(x_major_step))
                 if x_minor_step: ax.xaxis.set_minor_locator(MultipleLocator(x_minor_step))
+                
+                if x_major_step or x_minor_step or grid_minor_x:
+                    ax.minorticks_on()
                 
                 ax.grid(grid_major_x, which='major', axis='x', linestyle='--', alpha=grid_alpha_x, color=grid_color_x)
                 ax.grid(grid_minor_x, which='minor', axis='x', linestyle=':', alpha=grid_alpha_x * 0.6, color=grid_color_x)
