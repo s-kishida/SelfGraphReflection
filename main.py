@@ -13,7 +13,7 @@ def local_css():
         <style>
         /* 全体の背景色（Pure White） */
         .stApp {
-            background-color: #DCEAF7;
+            background-color: #FAFAFA;
             color: #111827; /* より濃い黒 */
         }
         /* サイドバー全体の背景とテキスト色 */
