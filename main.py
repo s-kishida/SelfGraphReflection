@@ -91,7 +91,7 @@ st.markdown("<p style='color: #374151; margin-top: -15px;'>高校生のための
 
 # --- サイドバー：以前のセクション構成を再現 ---
 with st.sidebar:
-    st.header("Data Input")
+    st.header("データのインポート")
     uploaded_file = st.file_uploader("CSVファイルを選択", type="csv")
     
     df = None
@@ -107,28 +107,28 @@ with st.sidebar:
 
     if df is not None:
         st.divider()
-        st.header("Axis Settings")
-        chart_type = st.selectbox("Chart Type (グラフの種類)", [
+        st.header("軸の設定")
+        chart_type = st.selectbox("グラフの種類の選択", [
             "折れ線グラフ", "散布図", "棒グラフ", "複合グラフ", "ヒストグラム", "円グラフ", "箱ひげ図", "バイオリンプロット"
         ])
         
         # グラフの種類に応じて設定項目を変える
         if chart_type in ["折れ線グラフ", "散布図", "棒グラフ", "複合グラフ"]:
-            x_axis = st.selectbox("X-Axis (横軸)", df.columns)
+            x_axis = st.selectbox("x軸(横軸)", df.columns)
             
             # 数値列を優先的にリストアップ
             numeric_cols = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c]) and c != x_axis]
             other_cols = [c for c in df.columns if not pd.api.types.is_numeric_dtype(df[c]) and c != x_axis]
             selectable_y = numeric_cols + other_cols
             
-            y_axes = st.multiselect("Y-Axis (縦軸: 複数選択可)", selectable_y, default=[numeric_cols[0]] if numeric_cols else [])
+            y_axes = st.multiselect("y軸(縦軸: 複数選択可)", selectable_y, default=[numeric_cols[0]] if numeric_cols else [])
             
             # デフォルト配色（イメージのパレットに基づいた配色）
             default_colors = ["#2E5B4E", "#A7C1B2", "#F2C94C", "#4B5563", "#768B7E", "#E09E8F", "#8FA2E0", "#E0C38F"]
             
             y_configs = {}
             if y_axes:
-                with st.expander("Series Settings (個別の設定)", expanded=True):
+                with st.expander("データごとのマーカーのサイズ・色設定", expanded=True):
                     for i, col in enumerate(y_axes):
                         st.write(f"**{col}**")
                         c_typ, c_col, c_siz, c_leg = st.columns([2, 1, 1, 1])
@@ -199,7 +199,7 @@ with st.sidebar:
         
 
         st.divider()
-        st.header("Label Settings")
+        st.header("タイトル・軸の名前の設定")
         default_title = f"{chart_type}"
         if y_axes:
             if chart_type in ["折れ線グラフ", "散布図", "棒グラフ"] and x_axis:
@@ -207,19 +207,19 @@ with st.sidebar:
             else:
                 default_title = f"{chart_type}: {', '.join(y_axes)}"
                 
-        chart_title = st.text_input("Graph Title", value=default_title)
+        chart_title = st.text_input("グラフのタイトル", value=default_title)
         
         c1, c2 = st.columns(2)
-        x_name = c1.text_input("X Name", value=x_axis if x_axis else "")
-        x_unit = c2.text_input("X Unit", placeholder="s, m, etc.")
+        x_name = c1.text_input("X軸の名前", value=x_axis if x_axis else "")
+        x_unit = c2.text_input("X軸の単位", placeholder="s, m, etc.")
         
         
-        st.subheader("Global Font Sizes")
+        st.subheader("フォントサイズの調整")
         f1, f2, f3 = st.columns(3)
-        font_title = f1.number_input("Title Size", 10, 50, 24, step=1)
+        font_title = f1.number_input("タイトルのフォントサイズ", 10, 50, 24, step=1)
         # Label/Tick sizes are now primarily handled per-axis in Axis Settings
-        font_label_global = f2.number_input("Global Label Size", 10, 40, 18, step=1)
-        font_tick_global = f3.number_input("Global Tick Size", 8, 30, 14, step=1)
+        font_label_global = f2.number_input("軸の名前のフォントサイズ", 10, 40, 18, step=1)
+        font_tick_global = f3.number_input("軸の目盛りのフォントサイズ", 8, 30, 14, step=1)
 
         # Global settings are now handled per-series
 
