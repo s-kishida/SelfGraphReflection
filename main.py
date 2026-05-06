@@ -288,6 +288,8 @@ with st.sidebar:
         if aspect_choice == "1:1": aspect_val = "equal"
         elif aspect_choice == "カスタム":
             aspect_val = st.number_input("カスタム比率 (縦/横)", value=1.0, step=0.1)
+            
+        grid_color = st.color_picker("グリッド線の色", value="#D1D5DB")
 
         st.divider()
         st.header("⑥ フィッティング")
@@ -622,8 +624,8 @@ if df is not None:
                 if x_major_step: ax.xaxis.set_major_locator(MultipleLocator(x_major_step))
                 if x_minor_step: ax.xaxis.set_minor_locator(MultipleLocator(x_minor_step))
                 
-                ax.grid(grid_major_x, which='major', axis='x', linestyle='--', alpha=0.5, color='#E5E7EB')
-                ax.grid(grid_minor_x, which='minor', axis='x', linestyle=':', alpha=0.3, color='#E5E7EB')
+                ax.grid(grid_major_x, which='major', axis='x', linestyle='--', alpha=0.5, color=grid_color)
+                ax.grid(grid_minor_x, which='minor', axis='x', linestyle=':', alpha=0.3, color=grid_color)
 
                 # Y軸の個別設定を適用
                 for i, target_ax in axes.items():
@@ -639,8 +641,8 @@ if df is not None:
                     if conf["major"]: target_ax.yaxis.set_major_locator(MultipleLocator(conf["major"]))
                     if conf["minor"]: target_ax.yaxis.set_minor_locator(MultipleLocator(conf["minor"]))
                     
-                    target_ax.grid(conf["grid_maj"], which='major', axis='y', linestyle='--', alpha=0.5, color='#E5E7EB')
-                    target_ax.grid(conf["grid_min"], which='minor', axis='y', linestyle=':', alpha=0.3, color='#E5E7EB')
+                    target_ax.grid(conf["grid_maj"], which='major', axis='y', linestyle='--', alpha=0.5, color=grid_color)
+                    target_ax.grid(conf["grid_min"], which='minor', axis='y', linestyle=':', alpha=0.3, color=grid_color)
 
             elif chart_type == "ヒストグラム":
                 axes = {1: ax}
