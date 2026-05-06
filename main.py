@@ -232,15 +232,18 @@ with st.sidebar:
                     else:
                         c2.write("")
                     
-                    # 2段目: サイズ, 凡例
+                    # 2段目: サイズ, 凡例表示
                     c3, c4 = st.columns(2)
                     if p_type == "Bar":
                         p_size = c3.number_input("棒の太さ", 0.1, 2.0, 1.0, step=0.1, key=f"size_{col}")
                     else:
                         p_size = c3.number_input("サイズ", 1.0, 50.0, 8.0 if p_type == "Scatter" else 3.0, step=1.0, key=f"size_{col}")
-                    p_leg = c4.checkbox("凡例を表示する", value=True, key=f"leg_{col}")
+                    p_leg_show = c4.checkbox("凡例を表示する", value=True, key=f"leg_show_{col}")
                     
-                    y_configs[col] = {"type": p_type, "color": p_color, "size": p_size, "show_legend": p_leg, "marker": p_marker}
+                    # 3段目: 凡例の名前
+                    p_label = st.text_input("凡例の名前", value=col, key=f"label_{col}")
+                    
+                    y_configs[col] = {"type": p_type, "color": p_color, "size": p_size, "show_legend": p_leg_show, "marker": p_marker, "label": p_label}
 
             active_ids = {1}
             if len(y_axes) >= 2:
@@ -467,8 +470,6 @@ if df is not None:
         fig, ax = plt.subplots(figsize=(width_val, height_val), facecolor='#FFFFFF')
         ax.set_facecolor('#FFFFFF')
         
-        code_snippets = []
-        
         # ラベル整形用関数
         def fmt(n, u):
             if n and u: return f"{n} ({u})"
@@ -527,7 +528,7 @@ if df is not None:
                     p_type = conf["type"]
                     p_color = conf["color"]
                     p_size = conf["size"]
-                    p_label = col if conf["show_legend"] else "_nolegend_"
+                    p_label = conf.get("label", col) if conf["show_legend"] else "_nolegend_"
                     
                     a_idx = y_axis_mapping.get(col, 1)
                     target_ax = axes[a_idx]
