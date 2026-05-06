@@ -114,6 +114,7 @@ with st.sidebar:
         chart_title = ""
         width_val, height_val, dpi_val = 10.0, 6.0, 150
         aspect_val = "auto"
+        y_configs = {}
 
         st.divider()
         st.header("② グラフの種類と軸の選択")
@@ -128,26 +129,6 @@ with st.sidebar:
             other_cols = [c for c in df.columns if not pd.api.types.is_numeric_dtype(df[c]) and c != x_axis]
             selectable_y = numeric_cols + other_cols
             y_axes = st.multiselect("y軸(縦軸)に使うデータ (複数選択可)", selectable_y, default=[numeric_cols[0]] if numeric_cols else [])
-            
-            # 各系列の詳細設定（色やサイズ）
-            if y_axes:
-                default_colors = ["#2E5B4E", "#A7C1B2", "#F2C94C", "#4B5563", "#768B7E", "#E09E8F", "#8FA2E0", "#E0C38F"]
-                y_configs = {}
-                with st.expander("データごとの色・マーカー設定"):
-                    for i, col in enumerate(y_axes):
-                        st.write(f"**{col}**")
-                        c_typ, c_col, c_siz, c_leg = st.columns([2, 1, 1, 1])
-                        if chart_type == "複合グラフ":
-                            p_type = c_typ.selectbox("Type", ["Line", "Scatter", "Bar"], key=f"type_{col}")
-                        else:
-                            p_type = "Line" if chart_type == "折れ線グラフ" else ("Scatter" if chart_type == "散布図" else "Bar")
-                        p_color = c_col.color_picker("Color", default_colors[i % len(default_colors)], key=f"color_{col}")
-                        if p_type == "Bar":
-                            p_size = c_siz.number_input("Width", 0.1, 2.0, 1.0, step=0.1, key=f"size_{col}")
-                        else:
-                            p_size = c_siz.number_input("Size", 1.0, 50.0, 8.0 if p_type == "Scatter" else 3.0, step=1.0, key=f"size_{col}")
-                        p_leg = c_leg.checkbox("Legend", value=True, key=f"leg_{col}")
-                        y_configs[col] = {"type": p_type, "color": p_color, "size": p_size, "show_legend": p_leg}
         
         elif chart_type == "円グラフ":
             x_axis = st.selectbox("ラベル(項目)に使うデータ", df.columns)
@@ -190,11 +171,33 @@ with st.sidebar:
         axis_configs = {0: {"name": y_axes[0] if y_axes else "", "unit": "", "min": None, "max": None, "label_size": 18, "tick_size": 14, "major": None, "minor": None, "grid_maj": True, "grid_min": False, "dir": "in"}}
         
         if y_axes and chart_type not in ["円グラフ", "ヒストグラム", "箱ひげ図", "バイオリンプロット"]:
+            # 各系列の詳細設定（色やサイズ）
+            default_colors = ["#2E5B4E", "#A7C1B2", "#F2C94C", "#4B5563", "#768B7E", "#E09E8F", "#8FA2E0", "#E0C38F"]
+            y_configs = {}
+            with st.expander("データごとの色・マーカー設定", expanded=True):
+                for i, col in enumerate(y_axes):
+                    st.write(f"**{col}**")
+                    c_typ, c_col, c_siz, c_leg = st.columns([2, 1, 1, 1])
+                    if chart_type == "複合グラフ":
+                        p_type = c_typ.selectbox("Type", ["Line", "Scatter", "Bar"], key=f"type_{col}")
+                    else:
+                        p_type = "Line" if chart_type == "折れ線グラフ" else ("Scatter" if chart_type == "散布図" else "Bar")
+                    p_color = c_col.color_picker("Color", default_colors[i % len(default_colors)], key=f"color_{col}")
+                    if p_type == "Bar":
+                        p_size = c_siz.number_input("Width", 0.1, 2.0, 1.0, step=0.1, key=f"size_{col}")
+                    else:
+                        p_size = c_siz.number_input("Size", 1.0, 50.0, 8.0 if p_type == "Scatter" else 3.0, step=1.0, key=f"size_{col}")
+                    p_leg = c_leg.checkbox("Legend", value=True, key=f"leg_{col}")
+                    y_configs[col] = {"type": p_type, "color": p_color, "size": p_size, "show_legend": p_leg}
+
             active_ids = {0}
-            with st.expander("軸の割り当て (2軸以上の設定)"):
-                for col in y_axes:
-                    y_axis_mapping[col] = st.number_input(f"『{col}』の軸番号 (0:左, 1:右, 2+:右オフセット)", 0, 5, 0, key=f"axis_map_{col}")
-                    active_ids.add(y_axis_mapping[col])
+            if len(y_axes) >= 2:
+                with st.expander("軸の割り当て (2軸以上の設定)"):
+                    for col in y_axes:
+                        y_axis_mapping[col] = st.number_input(f"『{col}』の軸番号 (0:左, 1:右, 2+:右オフセット)", 0, 5, 0, key=f"axis_map_{col}")
+                        active_ids.add(y_axis_mapping[col])
+            else:
+                for col in y_axes: y_axis_mapping[col] = 0
             
             for idx in sorted(list(active_ids)):
                 with st.expander(f"Axis {idx} の詳細設定"):
