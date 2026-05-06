@@ -18,7 +18,7 @@ def local_css():
         }
         /* サイドバー全体の背景とテキスト色 */
         [data-testid="stSidebar"], [data-testid="stSidebar"] .stMarkdown p {
-            background-color: #DCEAF7;
+            background-color: #E5E7E8;
             color: #111827 !important;
         }
         /* セクション見出し（FOREST） */
