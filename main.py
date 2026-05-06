@@ -209,7 +209,7 @@ with st.sidebar:
                     c_n, c_u = st.columns(2)
                     a_name = c_n.text_input(f"軸の名前", value=y_axes[0] if idx==1 and y_axes else "", key=f"aname_{idx}")
                     a_unit = c_u.text_input(f"軸の単位", key=f"aunit_{idx}")
-                    st.caption("💡 TeX形式（例: $x$）が使用できます。斜体や数式・添え字を使いたい場合に利用してください。")
+                    st.caption("TeX形式（例: \$x\$）が使用できます。斜体や数式・添え字を使いたい場合に利用してください。")
 
                     a_italic = st.checkbox("軸の名前を斜体にする", value=False, key=f"aitalic_{idx}")
                     
