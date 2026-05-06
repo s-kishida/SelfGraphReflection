@@ -11,14 +11,17 @@ from matplotlib.ticker import MultipleLocator
 def local_css():
     st.markdown("""
         <style>
+        :root {
+            color-scheme: light;
+        }
         /* 全体の背景色（Pure White） */
         .stApp {
-            background-color: #FAFAFA;
-            color: #1F2937; /* より濃い黒 */
+            background-color: #FAFAFA !important;
+            color: #1F2937 !important;
         }
         /* サイドバー全体の背景とテキスト色 */
         [data-testid="stSidebar"], [data-testid="stSidebar"] .stMarkdown p {
-            background-color: #E5E7E8;
+            background-color: #E5E7E8 !important;
             color: #1F2937 !important;
         }
         /* セクション見出し（FOREST） */
