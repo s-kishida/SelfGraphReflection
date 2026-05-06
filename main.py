@@ -284,6 +284,18 @@ with st.sidebar:
                 
                 f_type = st.selectbox("種類", ["直線近似 (y = ax + b)", "多項式近似", "正弦波", "指数関数", "対数関数", "ガウス関数", "カスタム数式"], index=0, key=f"f_type_{i}")
                 
+                # 数式の表示
+                formula_latex = {
+                    "直線近似 (y = ax + b)": r"y = ax + b",
+                    "多項式近似": r"y = a_n x^n + a_{n-1} x^{n-1} + \dots + a_0",
+                    "正弦波": r"y = a \sin(bx + c) + d",
+                    "指数関数": r"y = a e^{bx} + c",
+                    "対数関数": r"y = a \ln(x) + b",
+                    "ガウス関数": r"y = a \exp\left(-\frac{(x-b)^2}{2c^2}\right) + d",
+                    "カスタム数式": r"y = f(x)"
+                }
+                st.latex(formula_latex.get(f_type, ""))
+
                 f_degree = fit.get("degree", 2)
                 if f_type == "多項式近似":
                     f_degree = st.number_input("次数", 2, 10, f_degree, key=f"f_deg_{i}")
@@ -506,43 +518,43 @@ if df is not None:
                                     z = np.polyfit(fit_x_clean, fit_y_clean, 1)
                                     p = np.poly1d(z)
                                     x_range = np.linspace(fit_cfg["range_min"], fit_cfg["range_max"], 100)
-                                    ax.plot(x_range, p(x_range), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: y={z[0]:.3f}x + {z[1]:.3f}")
+                                    ax.plot(x_range, p(x_range), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: y = {z[0]:.2f}x + {z[1]:.2f}")
                                 
                                 elif fit_cfg["type"] == "多項式近似":
                                     deg = fit_cfg["degree"]
                                     z = np.polyfit(fit_x_clean, fit_y_clean, deg)
                                     p = np.poly1d(z)
                                     x_range = np.linspace(fit_cfg["range_min"], fit_cfg["range_max"], 100)
-                                    ax.plot(x_range, p(x_range), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: {deg}次多項式")
+                                    # 多項式を綺麗に表示
+                                    poly_str = " + ".join([f"{c:.2f}x^{deg-i}" if deg-i>0 else f"{c:.2f}" for i, c in enumerate(z)])
+                                    ax.plot(x_range, p(x_range), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: y = {poly_str}")
 
                                 elif fit_cfg["type"] == "正弦波":
                                     def func(x, a, b, c, d): return a * np.sin(b * x + c) + d
-                                    # 初期値推定
                                     p0 = [np.std(fit_y_clean) * 2**0.5, 2*np.pi / (max(fit_x_clean)-min(fit_x_clean)), 0, np.mean(fit_y_clean)]
                                     popt, _ = curve_fit(func, fit_x_clean, fit_y_clean, p0=p0)
                                     x_range = np.linspace(fit_cfg["range_min"], fit_cfg["range_max"], 200)
-                                    ax.plot(x_range, func(x_range, *popt), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: a*sin(bx+c)+d (a={popt[0]:.2f})")
+                                    ax.plot(x_range, func(x_range, *popt), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: y = {popt[0]:.2f} sin({popt[1]:.2f}x + {popt[2]:.2f}) + {popt[3]:.2f}")
 
                                 elif fit_cfg["type"] == "指数関数":
                                     def func(x, a, b, c): return a * np.exp(b * x) + c
                                     popt, _ = curve_fit(func, fit_x_clean, fit_y_clean, p0=[1, 0.1, np.min(fit_y_clean)])
                                     x_range = np.linspace(fit_cfg["range_min"], fit_cfg["range_max"], 100)
-                                    ax.plot(x_range, func(x_range, *popt), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: a*exp(bx)+c (b={popt[1]:.3f})")
+                                    ax.plot(x_range, func(x_range, *popt), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: y = {popt[0]:.2f} exp({popt[1]:.2f}x) + {popt[2]:.2f}")
 
                                 elif fit_cfg["type"] == "対数関数":
-                                    # x > 0 のみ
                                     valid = fit_x_clean > 0
                                     def func(x, a, b): return a * np.log(x) + b
                                     popt, _ = curve_fit(func, fit_x_clean[valid], fit_y_clean[valid])
                                     x_range = np.linspace(max(0.01, fit_cfg["range_min"]), fit_cfg["range_max"], 100)
-                                    ax.plot(x_range, func(x_range, *popt), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: a*log(x)+b (a={popt[0]:.2f})")
+                                    ax.plot(x_range, func(x_range, *popt), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: y = {popt[0]:.2f} ln(x) + {popt[1]:.2f}")
 
                                 elif fit_cfg["type"] == "ガウス関数":
                                     def func(x, a, b, c, d): return a * np.exp(-(x-b)**2 / (2*c**2)) + d
                                     p0 = [max(fit_y_clean)-min(fit_y_clean), fit_x_clean[np.argmax(fit_y_clean)], np.std(fit_x_clean), min(fit_y_clean)]
                                     popt, _ = curve_fit(func, fit_x_clean, fit_y_clean, p0=p0)
                                     x_range = np.linspace(fit_cfg["range_min"], fit_cfg["range_max"], 200)
-                                    ax.plot(x_range, func(x_range, *popt), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: Gaussian (center={popt[1]:.2f})")
+                                    ax.plot(x_range, func(x_range, *popt), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: Gaussian (center={popt[1]:.2f}, peak={popt[0]:.2f})")
 
                                 elif fit_cfg["type"] == "カスタム数式":
                                     formula = fit_cfg["formula"]
@@ -773,11 +785,15 @@ else:
         st.write("**物理実験・分析データ**")
         st.caption("フィッティング向き")
         # 自由落下とバネの伸びのデータ
-        rows = 50
-        x_vals = np.linspace(0, 10, rows)
+        rows = 100
+        x_vals = np.linspace(0.1, 10, rows)
         fit_sample_df = pd.DataFrame({
             "時間(s)": x_vals.round(2),
             "落下距離(m)": (0.5 * 9.8 * x_vals**2 + np.random.normal(0, 2, rows)).round(2),
-            "バネの荷重(N)": (2.5 * x_vals + 1.0 + np.random.normal(0, 0.5, rows)).round(2)
+            "バネの荷重(N)": (2.5 * x_vals + 1.0 + np.random.normal(0, 0.5, rows)).round(2),
+            "振り子の振れ": (5.0 * np.sin(1.2 * x_vals + 0.5) + np.random.normal(0, 0.2, rows)).round(2),
+            "細胞数": (10 * np.exp(0.4 * x_vals) + np.random.normal(0, 5, rows)).round(2),
+            "音圧(dB)": (20 * np.log(x_vals) + 40 + np.random.normal(0, 1, rows)).round(2),
+            "テスト点数分布": (100 * np.exp(-(x_vals-5)**2 / (2 * 1.5**2)) + np.random.normal(0, 2, rows)).round(2)
         })
         st.download_button("分析データのDL", fit_sample_df.to_csv(index=False).encode('utf-8-sig'), "sample_fitting.csv", "text/csv")
