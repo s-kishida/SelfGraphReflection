@@ -125,7 +125,7 @@ with st.sidebar:
         st.header("② グラフの種類と軸の選択")
         chart_type = st.selectbox("グラフの種類の選択", [
             "散布図", "折れ線グラフ", "棒グラフ", "複合グラフ", "ヒストグラム", "円グラフ", "箱ひげ図", "バイオリンプロット"
-        ])
+        ], index=0)
         
         # 軸の選択
         if chart_type in ["折れ線グラフ", "散布図", "棒グラフ", "複合グラフ"]:
@@ -594,7 +594,7 @@ else:
     
     with col_s1:
         st.write("**実験・変化データ**")
-        st.caption("折れ線グラフ・散布図向き")
+        st.caption("散布図・折れ線グラフ向き")
         # 120行の時系列データ
         rows = 120
         exp_df = pd.DataFrame({
