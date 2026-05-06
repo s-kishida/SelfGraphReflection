@@ -123,8 +123,6 @@ with st.sidebar:
 
         st.divider()
         st.header("② グラフの種類と軸の選択")
-        # デバッグ用：現在のコード上の先頭項目を表示
-        st.write("現在のデフォルト設定: **散布図**")
         chart_type = st.selectbox("グラフの種類の選択", [
             "散布図", "折れ線グラフ", "棒グラフ", "複合グラフ", "ヒストグラム", "円グラフ", "箱ひげ図", "バイオリンプロット"
         ], index=0, key="chart_type_selector_v2")
