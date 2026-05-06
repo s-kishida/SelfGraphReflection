@@ -90,7 +90,7 @@ local_css()
 
 # タイトル（以前のスタイル）
 st.title("Self-Graph Reflection")
-st.markdown("<p style='color: #374151; margin-top: -15px;'>高校生のためのグラフ作成ツール</p>", unsafe_allow_html=True)
+st.markdown("<p style='color: #374151; margin-top: -15px;'>中学生・高校生のためのグラフ作成ツール</p>", unsafe_allow_html=True)
 
 # --- サイドバー ---
 with st.sidebar:
@@ -268,7 +268,7 @@ with st.sidebar:
         width_val = c_w.number_input("画像の横幅", 5.0, 30.0, 10.0, step=1.0)
         height_val = c_h.number_input("画像の縦幅", 3.0, 30.0, 6.0, step=1.0)
         
-        dpi_val = st.number_input("画像のDPI (高画質なら300推奨)", 72, 600, 150, step=10)
+        dpi_val = st.number_input("画像のDPI (高画質なら300推奨)", 72, 600, 150, step=50)
         
         aspect_choice = st.selectbox("縦横比の設定", ["自動", "1:1", "カスタム"], index=0)
         aspect_val = "auto"
@@ -602,7 +602,7 @@ else:
             "温度A(℃)": (20 + np.cumsum(np.random.normal(0.3, 0.5, rows))).round(1),
             "温度B(℃)": (18 + np.cumsum(np.random.normal(0.2, 0.4, rows))).round(1)
         })
-        st.download_button("🌡️ 実験データのDL", exp_df.to_csv(index=False).encode('utf-8-sig'), "sample_experiment.csv", "text/csv")
+        st.download_button("実験データのDL", exp_df.to_csv(index=False).encode('utf-8-sig'), "sample_experiment.csv", "text/csv")
 
     with col_s2:
         st.write("**分類・割合データ**")
