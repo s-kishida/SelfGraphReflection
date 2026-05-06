@@ -290,7 +290,8 @@ with st.sidebar:
             aspect_val = st.number_input("カスタム比率 (縦/横)", value=1.0, step=0.1)
 
         st.divider()
-        st.header("⑥ フィッティング設定")
+        st.header("⑥ フィッティング")
+        st.caption("「フィッティング（近似）」とは、バラバラな点の集まりに対して、そのデータの傾向を最もよく表す「線」を引くことです。中学校で習う「直線近似」もその一種です。")
         
         if "fittings" not in st.session_state:
             st.session_state.fittings = []
