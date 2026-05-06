@@ -526,7 +526,7 @@ if df is not None:
             cx1, cx2 = st.columns(2)
             buf = io.BytesIO()
             fig.savefig(buf, format="png", dpi=150, bbox_inches='tight')
-            cx1.download_button("📁 画像をダウンロード", buf.getvalue(), f"graph.png", "image/png")
+            cx1.download_button("画像をダウンロード", buf.getvalue(), f"graph.png", "image/png")
             
             with st.expander("Python Code"):
                 # データの集計ロジックをコードにも追加
