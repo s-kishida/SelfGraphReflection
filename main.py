@@ -128,7 +128,7 @@ with st.sidebar:
         ], index=0)
         
         # 軸の選択
-        if chart_type in ["折れ線グラフ", "散布図", "棒グラフ", "複合グラフ"]:
+        if chart_type in ["散布図","折れ線グラフ", "棒グラフ", "複合グラフ"]:
             x_axis = st.selectbox("x軸(横軸)に使うデータ", df.columns)
             numeric_cols = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c]) and c != x_axis]
             other_cols = [c for c in df.columns if not pd.api.types.is_numeric_dtype(df[c]) and c != x_axis]
