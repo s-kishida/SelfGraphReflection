@@ -185,17 +185,19 @@ with st.sidebar:
             with st.expander("データごとの色・マーカー設定", expanded=True):
                 for i, col in enumerate(y_axes):
                     st.write(f"**{col}**")
-                    c_typ, c_col, c_siz, c_leg = st.columns([2, 1, 1, 1])
                     if chart_type == "複合グラフ":
+                        c_typ, c_col, c_siz, c_leg = st.columns([2, 1, 1, 1])
                         p_type = c_typ.selectbox("Type", ["Line", "Scatter", "Bar"], key=f"type_{col}")
                     else:
+                        c_col, c_siz, c_leg = st.columns([1, 1, 1])
                         p_type = "Line" if chart_type == "折れ線グラフ" else ("Scatter" if chart_type == "散布図" else "Bar")
+                    
                     p_color = c_col.color_picker("Color", default_colors[i % len(default_colors)], key=f"color_{col}")
                     if p_type == "Bar":
                         p_size = c_siz.number_input("Width", 0.1, 2.0, 1.0, step=0.1, key=f"size_{col}")
                     else:
                         p_size = c_siz.number_input("Size", 1.0, 50.0, 8.0 if p_type == "Scatter" else 3.0, step=1.0, key=f"size_{col}")
-                    p_leg = c_leg.checkbox("Legend", value=True, key=f"leg_{col}")
+                    p_leg = c_leg.checkbox("Leg\nend", value=True, key=f"leg_{col}")
                     y_configs[col] = {"type": p_type, "color": p_color, "size": p_size, "show_legend": p_leg}
 
             active_ids = {1}
