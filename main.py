@@ -170,7 +170,7 @@ with st.sidebar:
                 grid_major_x = st.checkbox("主目盛りのグリッドを表示", value=True, key="x_grid_maj")
                 grid_minor_x = st.checkbox("副目盛りのグリッドを表示", value=False, key="x_grid_min")
                 grid_color_x = st.color_picker("グリッド線の色 (x軸)", value="#D1D5DB", key="x_grid_color")
-                grid_alpha_x = st.slider("グリッドの透過率 (x軸)", 0.0, 1.0, 0.5, step=0.1, key="x_grid_alpha")
+                grid_alpha_x = st.number_input("グリッドの透過率 (x軸)", 0.0, 1.0, 0.5, step=0.1, key="x_grid_alpha")
                 tick_dir_label_x = st.selectbox("目盛り線の向き", list(TICK_DIR_MAP.keys()), index=0, key="x_tick_dir")
                 tick_dir_x = TICK_DIR_MAP[tick_dir_label_x]
         else:
@@ -253,7 +253,7 @@ with st.sidebar:
                     a_grid_min = st.checkbox("副グリッド表示", value=False, key=f"agrid_min_{idx}")
                     c_gc, c_ga = st.columns(2)
                     a_grid_color = c_gc.color_picker("グリッド色", value="#D1D5DB", key=f"agrid_color_{idx}")
-                    a_grid_alpha = c_ga.slider("透過率", 0.0, 1.0, 0.5, step=0.1, key=f"agrid_alpha_{idx}")
+                    a_grid_alpha = c_ga.number_input("透過率", 0.0, 1.0, 0.5, step=0.1, key=f"agrid_alpha_{idx}")
                     a_tick_dir_label = st.selectbox("目盛り線の向き", list(TICK_DIR_MAP.keys()), index=0, key=f"adir_{idx}")
                     a_tick_dir = TICK_DIR_MAP[a_tick_dir_label]
                     
