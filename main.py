@@ -715,14 +715,14 @@ else:
         st.download_button("分類データのDL", cat_df.to_csv(index=False).encode('utf-8-sig'), "sample_category.csv", "text/csv")
 
     with col_s3:
-        st.write("**分布・統計データ**")
-        st.caption("ヒスト（箱・バイオリン）向き")
-        # 120行の統計用データ
-        rows = 120
-        np.random.seed(42)
-        stat_df = pd.DataFrame({
-            "グループ1": np.random.normal(70, 10, rows),
-            "グループ2": np.random.normal(60, 15, rows),
-            "グループ3": np.random.normal(80, 5, rows)
-        }).round(1)
-        st.download_button("統計データのDL", stat_df.to_csv(index=False).encode('utf-8-sig'), "sample_stats.csv", "text/csv")
+        st.write("**物理実験・分析データ**")
+        st.caption("フィッティング・近似向き")
+        # 自由落下とバネの伸びのデータ
+        rows = 50
+        x_vals = np.linspace(0, 10, rows)
+        fit_sample_df = pd.DataFrame({
+            "時間(s)": x_vals.round(2),
+            "落下距離(m)": (0.5 * 9.8 * x_vals**2 + np.random.normal(0, 2, rows)).round(2),
+            "バネの荷重(N)": (2.5 * x_vals + 1.0 + np.random.normal(0, 0.5, rows)).round(2)
+        })
+        st.download_button("分析データのDL", fit_sample_df.to_csv(index=False).encode('utf-8-sig'), "sample_fitting.csv", "text/csv")
