@@ -752,14 +752,21 @@ df = pd.read_csv('data.csv')
 fig, ax = plt.subplots(figsize=({width_val}, {height_val}))
 
 # X軸の設定
-ax.set_xlabel('{fmt(x_name, x_unit)}', fontsize={font_label_x}, fontstyle='{'italic' if italic_label_x else 'normal'}')
-ax.tick_params(axis='x', labelsize={font_tick_x}, direction='{tick_dir_x}')
-"""
+                # X軸の設定
+                full_code += f"ax.set_xlabel('{fmt(x_name, x_unit)}', fontsize={font_label_x})\n"
+                full_code += f"ax.tick_params(axis='x', labelsize={font_tick_x}, direction='{tick_dir_x}')\n"
                 if xmin_val is not None: full_code += f"ax.set_xlim(left={xmin_val})\n"
                 if xmax_val is not None: full_code += f"ax.set_xlim(right={xmax_val})\n"
                 if x_major_step: full_code += f"ax.xaxis.set_major_locator(MultipleLocator({x_major_step}))\n"
                 if x_minor_step: full_code += f"ax.xaxis.set_minor_locator(MultipleLocator({x_minor_step}))\n"
-                full_code += f"ax.grid({grid_major_x}, which='major', axis='x', linestyle='--', alpha=0.5)\n"
+                
+                if x_major_step or x_minor_step or grid_minor_x:
+                    full_code += "ax.minorticks_on()\n"
+                
+                if grid_major_x:
+                    full_code += f"ax.grid(which='major', axis='x', linestyle='--', alpha={grid_alpha_x}, color='{grid_color_x}')\n"
+                if grid_minor_x:
+                    full_code += f"ax.grid(which='minor', axis='x', linestyle=':', alpha={grid_alpha_x * 0.6}, color='{grid_color_x}')\n"
 
                 full_code += f"\n# プロットとY軸の設定\n"
                 for i, idx in enumerate(sorted(axis_configs.keys())):
@@ -770,13 +777,21 @@ ax.tick_params(axis='x', labelsize={font_tick_x}, direction='{tick_dir_x}')
                         if idx > 2:
                             full_code += f"{prefix}.spines['right'].set_position(('axes', {1.0 + (idx-2)*0.15}))\n"
                     
-                    full_code += f"{prefix}.set_ylabel('{fmt(conf['name'], conf['unit'])}', fontsize={conf['label_size']}, fontstyle='{'italic' if conf.get('italic') else 'normal'}')\n"
+                    full_code += f"{prefix}.set_ylabel('{fmt(conf['name'], conf['unit'])}', fontsize={conf['label_size']})\n"
                     full_code += f"{prefix}.tick_params(axis='y', labelsize={conf['tick_size']}, direction='{conf['dir']}')\n"
                     if conf['min'] is not None: full_code += f"{prefix}.set_ylim(bottom={conf['min']})\n"
                     if conf['max'] is not None: full_code += f"{prefix}.set_ylim(top={conf['max']})\n"
                     if conf['major']: full_code += f"{prefix}.yaxis.set_major_locator(MultipleLocator({conf['major']}))\n"
-                    if conf['minor']: full_code += f"{prefix}.yaxis.set_minor_locator(MultipleLocator({conf['minor']}))\n"
-                    full_code += f"{prefix}.grid({conf['grid_maj']}, which='major', axis='y', linestyle='--', alpha=0.5)\n"
+                    if conf['minor']: 
+                        full_code += f"{prefix}.yaxis.set_minor_locator(MultipleLocator({conf['minor']}))\n"
+                        full_code += f"{prefix}.minorticks_on()\n"
+                    elif conf.get('grid_min'):
+                        full_code += f"{prefix}.minorticks_on()\n"
+                        
+                    if conf.get('grid_maj'):
+                        full_code += f"{prefix}.grid(which='major', axis='y', linestyle='--', alpha={conf.get('grid_alpha', 0.5)}, color='{conf.get('grid_color', '#9CA3AF')}')\n"
+                    if conf.get('grid_min'):
+                        full_code += f"{prefix}.grid(which='minor', axis='y', linestyle=':', alpha={conf.get('grid_alpha', 0.5) * 0.6}, color='{conf.get('grid_color', '#9CA3AF')}')\n"
 
                 if show_title:
                     full_code += f"\nax.set_title('{chart_title}', fontsize={font_title})\n"
