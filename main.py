@@ -60,7 +60,7 @@ def local_css():
         }
         /* ボタンのデザイン（反転：白背景に緑枠） */
         .stButton>button, .stDownloadButton>button {
-            background-color: #FFFFFF !important;
+            background-color: #E5E7E8 !important;
             color: #2E5B4E !important;
             border: 2px solid #2E5B4E !important;
             border-radius: 8px !important;
