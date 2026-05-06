@@ -353,12 +353,26 @@ if df is not None:
     with st.expander("アップロードされたデータの詳細を確認", expanded=False):
         st.subheader("データ概要")
         # 各列の情報をまとめる
-        info_df = pd.DataFrame({
-            "列名": df.columns,
-            "データ型": [str(t) for t in df.dtypes],
-            "有効データ数": df.count().values,
-            "欠損数": df.isnull().sum().values
-        })
+        info_list = []
+        for col in df.columns:
+            total = len(df)
+            blanks = df[col].isnull().sum()
+            # 数値に変換を試みる（変換できないものはNaNになる）
+            as_numeric = pd.to_numeric(df[col], errors='coerce')
+            numeric_blanks = as_numeric.isnull().sum()
+            
+            valid_numeric = total - numeric_blanks
+            numeric_errors = numeric_blanks - blanks
+            
+            info_list.append({
+                "列名": col,
+                "データ型": str(df[col].dtype),
+                "有効データ数(数値)": valid_numeric,
+                "数値エラー数": numeric_errors,
+                "欠損数(空白)": blanks
+            })
+        
+        info_df = pd.DataFrame(info_list)
         st.table(info_df)
         
         st.subheader("データの数値参照")
