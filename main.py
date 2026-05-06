@@ -264,7 +264,7 @@ with st.sidebar:
 # --- メインエリア ---
 if df is not None:
     # データ情報の表示
-    with st.expander("📊 アップロードされたデータの詳細を確認", expanded=False):
+    with st.expander("アップロードされたデータの詳細を確認", expanded=False):
         st.subheader("データ概要")
         # 各列の情報をまとめる
         info_df = pd.DataFrame({
