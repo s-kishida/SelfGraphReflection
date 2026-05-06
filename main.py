@@ -686,7 +686,7 @@ else:
     st.subheader("サンプルデータで試す")
     st.markdown("グラフの種類に合わせたサンプルCSVをダウンロードして、使い心地を確認できます。")
     
-    col_s1, col_s2, col_s3 = st.columns(3)
+    col_s1, col_s2, col_s3, col_s4 = st.columns(4)
     
     with col_s1:
         st.write("**実験・変化データ**")
@@ -715,8 +715,21 @@ else:
         st.download_button("分類データのDL", cat_df.to_csv(index=False).encode('utf-8-sig'), "sample_category.csv", "text/csv")
 
     with col_s3:
+        st.write("**分布・統計データ**")
+        st.caption("ヒスト・箱・バイオリン向き")
+        # 120行の統計用データ
+        rows = 120
+        np.random.seed(42)
+        stat_df = pd.DataFrame({
+            "グループA": np.random.normal(70, 10, rows),
+            "グループB": np.random.normal(60, 15, rows),
+            "グループC": np.random.normal(80, 5, rows)
+        }).round(1)
+        st.download_button("統計データのDL", stat_df.to_csv(index=False).encode('utf-8-sig'), "sample_stats.csv", "text/csv")
+
+    with col_s4:
         st.write("**物理実験・分析データ**")
-        st.caption("フィッティング・近似向き")
+        st.caption("フィッティング向き")
         # 自由落下とバネの伸びのデータ
         rows = 50
         x_vals = np.linspace(0, 10, rows)
