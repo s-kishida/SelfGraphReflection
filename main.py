@@ -320,7 +320,7 @@ if df is not None:
             st.dataframe(df, use_container_width=True)
     
     if not y_axes:
-        st.info("👈 サイドバーで描画するデータを選択してください。")
+        st.info("サイドバーで描画するデータを選択してください。")
     else:
         # グラフ作成
         fig, ax = plt.subplots(figsize=(width_val, height_val), facecolor='#FFFFFF')
@@ -612,7 +612,7 @@ ax.legend(lines_all, labels_all)
 
 else:
     # ファイル未アップロード時の表示
-    st.info("👈 左側のサイドバーからCSVファイルをアップロードして始めましょう。")
+    st.info("左側のサイドバーからCSVファイルをアップロードして始めましょう。")
     
     # 使い方ガイド
     st.markdown("""
@@ -625,7 +625,7 @@ else:
     
     # サンプルデータ作成・DL機能
     st.divider()
-    st.subheader("💡 サンプルデータで試す")
+    st.subheader("サンプルデータで試す")
     st.markdown("グラフの種類に合わせたサンプルCSVをダウンロードして、使い心地を確認できます。")
     
     col_s1, col_s2, col_s3 = st.columns(3)
@@ -654,7 +654,7 @@ else:
             "金額(円)": np.random.randint(100, 5000, rows),
             "満足度": np.random.randint(1, 6, rows)
         })
-        st.download_button("📊 分類データのDL", cat_df.to_csv(index=False).encode('utf-8-sig'), "sample_category.csv", "text/csv")
+        st.download_button("分類データのDL", cat_df.to_csv(index=False).encode('utf-8-sig'), "sample_category.csv", "text/csv")
 
     with col_s3:
         st.write("**分布・統計データ**")
