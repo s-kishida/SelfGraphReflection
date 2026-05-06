@@ -11,68 +11,69 @@ from matplotlib.ticker import MultipleLocator
 def local_css():
     st.markdown("""
         <style>
-        /* 全体の背景色（SAND） */
+        /* 全体の背景色（Pure White） */
         .stApp {
-            background-color: #F7F3EC;
+            background-color: #FFFFFF;
             color: #1F2937;
         }
-        /* サイドバーの背景色（SNOW） */
+        /* サイドバーの調整 */
         [data-testid="stSidebar"] {
-            background-color: #FAFAFA;
+            background-color: #F9FAFB;
             border-right: 1px solid #E5E7EB;
-        }
-        /* テキスト入力やセレクトボックス */
-        .stTextInput>div>div>input, .stSelectbox>div>div>div {
-            background-color: #FFFFFF !important;
-            color: #1F2937 !important;
-            border-color: #E5E7EB !important;
         }
         /* セクション見出し（FOREST） */
         h1, h2, h3, h4, h5, h6 {
             color: #2E5B4E !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
         }
-        /* ボタンのデザイン（FOREST） */
-        .stButton>button {
+        /* テキスト入力、セレクトボックス、マルチセレクト等の背景を白に固定 */
+        .stTextInput>div>div>input, 
+        .stSelectbox>div>div>div,
+        .stMultiSelect>div>div,
+        .stNumberInput>div>div>input,
+        .stTextArea>div>div>textarea {
+            background-color: #FFFFFF !important;
+            color: #1F2937 !important;
+            border: 1px solid #D1D5DB !important;
+        }
+        /* マルチセレクトのタグ */
+        span[data-baseweb="tag"] {
             background-color: #2E5B4E !important;
             color: white !important;
-            border: none !important;
+        }
+        /* ボタンのデザイン：背景白ベースに「反転」 */
+        .stButton>button, .stDownloadButton>button {
+            background-color: #FFFFFF !important;
+            color: #2E5B4E !important;
+            border: 2px solid #2E5B4E !important;
             border-radius: 8px !important;
             font-weight: bold;
             width: 100%;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
-        .stButton>button:hover {
-            background-color: #A7C1B2 !important;
-            color: white !important;
+        .stButton>button:hover, .stDownloadButton>button:hover {
+            background-color: #2E5B4E !important;
+            color: #FFFFFF !important;
         }
         /* 強調ラベル（CHARCOAL） */
         .stMarkdown p {
-            color: #4B5563;
-            font-size: 0.95rem;
+            color: #374151;
         }
-        /* Google風ページネーション用スタイル（FOREST） */
-        .page-num-row button {
-            background: none !important;
-            border: none !important;
-            color: #2E5B4E !important;
-            padding: 0 !important;
-            min-height: 24px !important;
-            line-height: 1.5 !important;
-            font-weight: normal !important;
-        }
-        .page-num-row button:hover {
-            text-decoration: underline !important;
-            color: #A7C1B2 !important;
-        }
-        /* 追加：エキスパンダーや仕切り線の調整 */
+        /* エキスパンダーの調整 */
         .stExpander {
             background-color: #FFFFFF !important;
             border: 1px solid #E5E7EB !important;
             border-radius: 8px !important;
         }
-        hr {
-            border-color: #E5E7EB !important;
+        /* ファイルアップローダーの背景 */
+        [data-testid="stFileUploader"] {
+            background-color: #F3F4F6;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        /* ページネーション */
+        .page-num-row button {
+            color: #2E5B4E !important;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -81,7 +82,7 @@ local_css()
 
 # タイトル（以前のスタイル）
 st.title("Self-Graph Reflection")
-st.markdown("<p style='color: #4B5563; margin-top: -15px;'>高校生のためのグラフ作成ツール</p>", unsafe_allow_html=True)
+st.markdown("<p style='color: #374151; margin-top: -15px;'>高校生のためのグラフ作成ツール</p>", unsafe_allow_html=True)
 
 # --- サイドバー：以前のセクション構成を再現 ---
 with st.sidebar:
@@ -317,8 +318,8 @@ if df is not None:
         st.info("👈 サイドバーで描画するデータを選択してください。")
     else:
         # グラフ作成
-        fig, ax = plt.subplots(figsize=(width_val, height_val), facecolor='#FAFAFA')
-        ax.set_facecolor('#FAFAFA')
+        fig, ax = plt.subplots(figsize=(width_val, height_val), facecolor='#FFFFFF')
+        ax.set_facecolor('#FFFFFF')
         
         code_snippets = []
         
