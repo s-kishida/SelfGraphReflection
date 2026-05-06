@@ -279,7 +279,7 @@ with st.sidebar:
         for i, fit in enumerate(st.session_state.fittings):
             with st.expander(f"フィッティング {i+1}: {fit['target']}", expanded=True):
                 col_del, col_empty = st.columns([1, 3])
-                if col_del.button(f"🗑️ 削除", key=f"del_fit_{i}"):
+                if col_del.button(f"削除", key=f"del_fit_{i}"):
                     continue # この要素をスキップして削除を実現
                 
                 f_type = st.selectbox("種類", ["直線近似 (y = ax + b)", "カスタム数式"], index=0 if fit["type"]=="直線近似 (y = ax + b)" else 1, key=f"f_type_{i}")
