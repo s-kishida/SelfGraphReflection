@@ -224,42 +224,42 @@ with st.sidebar:
         # Global settings are now handled per-series
 
         st.divider()
-        st.header("Graph Size")
+        st.header("グラフのサイズ設定")
         s1, s2 = st.columns(2)
-        width_val = s1.number_input("Width", 5.0, 30.0, 10.0, step=1.0, format="%g")
-        height_val = s2.number_input("Height", 3.0, 30.0, 6.0, step=1.0, format="%g")
+        width_val = s1.number_input("横幅", 5.0, 30.0, 10.0, step=1.0, format="%g")
+        height_val = s2.number_input("縦幅", 3.0, 30.0, 6.0, step=1.0, format="%g")
         
-        aspect_choice = st.selectbox("Aspect Ratio (Data)", ["auto", "equal", "custom"], index=0)
+        aspect_choice = st.selectbox("縦横比", ["自動", "1:1", "カスタム"], index=0)
         aspect_val = None
-        if aspect_choice == "custom":
-            aspect_val = st.number_input("Custom Ratio (Height/Width)", value=1.0, step=0.1, format="%g")
-        elif aspect_choice == "equal":
-            aspect_val = "equal"
-        else:
+        if aspect_choice == "自動":
             aspect_val = "auto"
+        elif aspect_choice == "1:1":
+            aspect_val = "equal"
+        elif aspect_choice == "カスタム":
+            aspect_val = st.number_input("カスタムの比率 (縦幅/横幅)", value=1.0, step=0.1, format="%g")
 
         st.divider()
-        st.header("Scale Settings")
+        st.header("グラフの描写範囲の設定")
         c_sc1, c_sc2 = st.columns(2)
-        xmin_val = c_sc1.number_input("X Min (Auto if empty)", value=None, step=1.0, format="%g")
-        xmax_val = c_sc2.number_input("X Max (Auto if empty)", value=None, step=1.0, format="%g")
+        xmin_val = c_sc1.number_input("X軸の最小 (空白の場合は自動調整)", value=None, step=1.0, format="%g")
+        xmax_val = c_sc2.number_input("X軸の最大 (空白の場合は自動調整)", value=None, step=1.0, format="%g")
         
         c_sc3, c_sc4 = st.columns(2)
-        ymin_val = c_sc3.number_input("Y Min (Auto if empty)", value=None, step=1.0, format="%g")
-        ymax_val = c_sc4.number_input("Y Max (Auto if empty)", value=None, step=1.0, format="%g")
+        ymin_val = c_sc3.number_input("Y軸の最小 (空白の場合は自動調整)", value=None, step=1.0, format="%g")
+        ymax_val = c_sc4.number_input("Y軸の最大 (空白の場合は自動調整)", value=None, step=1.0, format="%g")
 
         st.divider()
-        st.header("Tick & Grid Details")
-        with st.expander("X-Axis Ticks"):
-            x_major_step = st.number_input("X Major Interval", value=None, step=1.0, format="%g", key="x_maj")
-            x_minor_step = st.number_input("X Minor Interval", value=None, step=1.0, format="%g", key="x_min")
-        with st.expander("Y-Axis Ticks"):
-            y_major_step = st.number_input("Y Major Interval", value=None, step=1.0, format="%g", key="y_maj")
-            y_minor_step = st.number_input("Y Minor Interval", value=None, step=1.0, format="%g", key="y_min")
-        with st.expander("Grid & Other"):
-            grid_major = st.checkbox("Show Major Grid", value=True)
-            grid_minor = st.checkbox("Show Minor Grid", value=False)
-            tick_dir = st.selectbox("Tick Direction (目盛の向き)", ["in", "out", "inout"], index=0)
+        st.header("目盛りとグリッドの設定")
+        with st.expander("x軸の目盛り線の設定"):
+            x_major_step = st.number_input("x軸の主目盛り線の間隔", value=None, step=1.0, format="%g", key="x_maj")
+            x_minor_step = st.number_input("x軸の副目盛り線の間隔", value=None, step=1.0, format="%g", key="x_min")
+        with st.expander("y軸の目盛り線の設定"):    
+            y_major_step = st.number_input("y軸の主目盛り線の間隔", value=None, step=1.0, format="%g", key="y_maj")
+            y_minor_step = st.number_input("y軸の副目盛り線の間隔", value=None, step=1.0, format="%g", key="y_min")
+        with st.expander("グリッドと目盛り線の向き"):
+            grid_major = st.checkbox("主目盛りのグリッドの表示", value=True)
+            grid_minor = st.checkbox("副目盛りのグリッドの表示", value=False)
+            tick_dir = st.selectbox("目盛り線のの向き", ["内側", "外側", "両方"], index=0)
 
 # --- メインエリア ---
 if df is not None:
