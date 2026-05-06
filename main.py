@@ -196,18 +196,27 @@ with st.sidebar:
                         c_col, c_siz, c_leg = st.columns([1, 1, 1])
                         p_type = "Line" if chart_type == "折れ線グラフ" else ("Scatter" if chart_type == "散布図" else "Bar")
                     
-                    p_color = c_col.color_picker("色", default_colors[i % len(default_colors)], key=f"color_{col}")
-                    p_marker = "o"
-                    if p_type == "Bar":
-                        p_size = c_siz.number_input("太さ", 0.1, 2.0, 1.0, step=0.1, key=f"size_{col}")
-                    else:
-                        c_siz_inner, c_mark_inner = c_siz.columns(2)
-                        p_size = c_siz_inner.number_input("サイズ", 1.0, 50.0, 8.0 if p_type == "Scatter" else 3.0, step=1.0, key=f"size_{col}")
-                        marker_map = {"○": "o", "□": "s", "△": "^", "▽": "v", "◇": "d", "×": "x", "＋": "+", "★": "*"}
-                        p_marker_label = c_mark_inner.selectbox("形", list(marker_map.keys()), key=f"marker_{col}")
-                        p_marker = marker_map[p_marker_label]
+                    # 1段目: 色, 形, 凡例
+                    c1, c2, c3 = st.columns([1, 1, 1])
+                    p_color = c1.color_picker("色", default_colors[i % len(default_colors)], key=f"color_{col}")
                     
-                    p_leg = c_leg.checkbox("凡例", value=True, key=f"leg_{col}")
+                    p_marker = "o"
+                    if p_type != "Bar":
+                        marker_map = {"○": "o", "□": "s", "△": "^", "▽": "v", "◇": "d", "×": "x", "＋": "+", "★": "*"}
+                        p_marker_label = c2.selectbox("形", list(marker_map.keys()), key=f"marker_{col}")
+                        p_marker = marker_map[p_marker_label]
+                    else:
+                        c2.write("") # 棒グラフの場合は空ける
+                    
+                    p_leg = c3.checkbox("凡例表示", value=True, key=f"leg_{col}")
+                    
+                    # 2段目: サイズ
+                    c4, c5 = st.columns([2, 1])
+                    if p_type == "Bar":
+                        p_size = c4.slider("棒の太さ", 0.1, 2.0, 1.0, step=0.1, key=f"size_{col}")
+                    else:
+                        p_size = c4.slider("サイズ", 1.0, 50.0, 8.0 if p_type == "Scatter" else 3.0, step=1.0, key=f"size_{col}")
+                    
                     y_configs[col] = {"type": p_type, "color": p_color, "size": p_size, "show_legend": p_leg, "marker": p_marker}
 
             active_ids = {1}
