@@ -115,6 +115,7 @@ with st.sidebar:
         width_val, height_val, dpi_val = 10.0, 6.0, 150
         aspect_val = "auto"
         y_configs = {}
+        TICK_DIR_MAP = {"内側": "in", "外側": "out", "両側": "inout"}
 
         st.divider()
         st.header("② グラフの種類と軸の選択")
@@ -161,7 +162,8 @@ with st.sidebar:
                 x_minor_step = st.number_input("副目盛りの間隔", value=None, step=1.0, format="%g", key="x_min")
                 grid_major_x = st.checkbox("主目盛りのグリッドを表示", value=True, key="x_grid_maj")
                 grid_minor_x = st.checkbox("副目盛りのグリッドを表示", value=False, key="x_grid_min")
-                tick_dir_x = st.selectbox("目盛り線の向き", ["in", "out", "inout"], index=0, key="x_tick_dir")
+                tick_dir_label_x = st.selectbox("目盛り線の向き", list(TICK_DIR_MAP.keys()), index=0, key="x_tick_dir")
+                tick_dir_x = TICK_DIR_MAP[tick_dir_label_x]
         else:
             st.info("このグラフタイプではx軸の詳細設定は不要です。")
 
@@ -219,7 +221,8 @@ with st.sidebar:
                     
                     a_grid_maj = st.checkbox("主グリッド表示", value=True if idx==1 else False, key=f"agrid_maj_{idx}")
                     a_grid_min = st.checkbox("副グリッド表示", value=False, key=f"agrid_min_{idx}")
-                    a_tick_dir = st.selectbox("目盛り線の向き", ["in", "out", "inout"], index=0, key=f"adir_{idx}")
+                    a_tick_dir_label = st.selectbox("目盛り線の向き", list(TICK_DIR_MAP.keys()), index=0, key=f"adir_{idx}")
+                    a_tick_dir = TICK_DIR_MAP[a_tick_dir_label]
                     
                     axis_configs[idx] = {
                         "name": a_name, "unit": a_unit, "min": a_min, "max": a_max, 
