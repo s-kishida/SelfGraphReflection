@@ -208,6 +208,8 @@ with st.sidebar:
                     c_n, c_u = st.columns(2)
                     a_name = c_n.text_input(f"軸の名前", value=y_axes[0] if idx==1 and y_axes else "", key=f"aname_{idx}")
                     a_unit = c_u.text_input(f"軸の単位", key=f"aunit_{idx}")
+
+                    a_italic = st.checkbox("軸の名前を斜体にする", value=False, key=f"aitalic_{idx}")
                     
                     c_mi, c_ma = st.columns(2)
                     a_min = c_mi.number_input(f"最小範囲", value=None, step=1.0, format="%g", key=f"amin_{idx}")
@@ -216,7 +218,6 @@ with st.sidebar:
                     c_fl, c_ft = st.columns(2)
                     a_font_l = c_fl.number_input(f"軸名前FS", 10, 40, 18, key=f"afont_l_{idx}")
                     a_font_t = c_ft.number_input("目盛りFS", 8, 30, 14, key=f"afont_t_{idx}")
-                    a_italic = st.checkbox("軸の名前を斜体にする", value=False, key=f"aitalic_{idx}")
                     
                     c_maj, c_min = st.columns(2)
                     a_maj_step = c_maj.number_input("主目盛り間隔", value=None, step=1.0, key=f"amaj_{idx}")
