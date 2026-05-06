@@ -267,6 +267,18 @@ with st.sidebar:
                 if fit_type == "カスタム数式":
                     st.info("変数 x と係数 (a, b, c...) を使用したPython形式の数式を入力してください。例: a * x**2 + b * x + c")
                     fit_config["formula"] = st.text_input("数式入力", value="a * x + b", key="fit_formula")
+                
+                # 範囲指定
+                if x_axis and x_axis in df.columns and pd.api.types.is_numeric_dtype(df[x_axis]):
+                    min_x_data = float(df[x_axis].min())
+                    max_x_data = float(df[x_axis].max())
+                    st.write("フィッティング範囲")
+                    c_f1, c_f2 = st.columns(2)
+                    fit_config["range_min"] = c_f1.number_input("開始(x)", value=min_x_data, key="fit_range_min")
+                    fit_config["range_max"] = c_f2.number_input("終了(x)", value=max_x_data, key="fit_range_max")
+                else:
+                    fit_config["range_min"] = None
+                    fit_config["range_max"] = None
             else:
                 st.warning("y軸のデータを選択してください。")
         
@@ -455,6 +467,11 @@ if df is not None:
                         
                         # 数値データのみを抽出（NaN/Infを除去）
                         mask = np.isfinite(fit_x) & np.isfinite(fit_y)
+                        
+                        # 範囲指定がある場合のフィルタリング
+                        if fit_config.get("range_min") is not None and fit_config.get("range_max") is not None:
+                            mask = mask & (fit_x >= fit_config["range_min"]) & (fit_x <= fit_config["range_max"])
+                        
                         fit_x = fit_x[mask]
                         fit_y = fit_y[mask]
                         
