@@ -149,7 +149,7 @@ with st.sidebar:
             c_xn, c_xu = st.columns(2)
             x_name = c_xn.text_input("x軸の名前", value=x_axis if x_axis else "")
             x_unit = c_xu.text_input("x軸の単位", placeholder="s, m, etc.")
-            st.caption("TeX形式（例: $x$）が使用できます。斜体や数式・添え字を使いたい場合に利用してください。")
+            st.caption("TeX形式（例: \$x\$）が使用できます。斜体や数式・添え字を使いたい場合に利用してください。")
             
             c_xfl, c_xft = st.columns(2)
             font_label_x = c_xfl.number_input("軸の名前のフォントサイズ", 10, 40, 18, key="x_label_fs")
