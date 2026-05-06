@@ -32,13 +32,13 @@ def local_css():
         .stMultiSelect div[data-baseweb="select"] > div,
         .stNumberInput input,
         .stTextArea textarea {
-            background-color: #F7F3EC !important;
+            background-color: #DCEAF7 !important;
             color: #1F2937 !important;
             border: 1px solid #D1D5DB !important;
         }
         /* Number Input の +/- ボタンや背景 */
         .stNumberInput div[data-baseweb="input"] {
-            background-color: #FFFFFF !important;
+            background-color: #F7F3EC !important;
         }
         /* エキスパンダーのタイトルと背景 */
         .stExpander {
