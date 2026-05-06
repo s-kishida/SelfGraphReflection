@@ -168,7 +168,7 @@ with st.sidebar:
         st.divider()
         st.header("④ y軸の設定")
         y_axis_mapping = {}
-        axis_configs = {0: {"name": y_axes[0] if y_axes else "", "unit": "", "min": None, "max": None, "label_size": 18, "tick_size": 14, "major": None, "minor": None, "grid_maj": True, "grid_min": False, "dir": "in"}}
+        axis_configs = {1: {"name": y_axes[0] if y_axes else "", "unit": "", "min": None, "max": None, "label_size": 18, "tick_size": 14, "major": None, "minor": None, "grid_maj": True, "grid_min": False, "dir": "in"}}
         
         if y_axes and chart_type not in ["円グラフ", "ヒストグラム", "箱ひげ図", "バイオリンプロット"]:
             # 各系列の詳細設定（色やサイズ）
@@ -190,19 +190,19 @@ with st.sidebar:
                     p_leg = c_leg.checkbox("Legend", value=True, key=f"leg_{col}")
                     y_configs[col] = {"type": p_type, "color": p_color, "size": p_size, "show_legend": p_leg}
 
-            active_ids = {0}
+            active_ids = {1}
             if len(y_axes) >= 2:
                 with st.expander("軸の割り当て (2軸以上の設定)"):
                     for col in y_axes:
-                        y_axis_mapping[col] = st.number_input(f"『{col}』の軸番号 (0:左, 1:右, 2+:右オフセット)", 0, 5, 0, key=f"axis_map_{col}")
+                        y_axis_mapping[col] = st.number_input(f"『{col}』の軸番号 (1:左, 2:右, 3+:右オフセット)", 1, 6, 1, key=f"axis_map_{col}")
                         active_ids.add(y_axis_mapping[col])
             else:
-                for col in y_axes: y_axis_mapping[col] = 0
+                for col in y_axes: y_axis_mapping[col] = 1
             
             for idx in sorted(list(active_ids)):
-                with st.expander(f"Axis {idx} の詳細設定"):
+                with st.expander(f"{idx}本目の軸の詳細設定"):
                     c_n, c_u = st.columns(2)
-                    a_name = c_n.text_input(f"軸の名前", value=y_axes[0] if idx==0 and y_axes else "", key=f"aname_{idx}")
+                    a_name = c_n.text_input(f"軸の名前", value=y_axes[0] if idx==1 and y_axes else "", key=f"aname_{idx}")
                     a_unit = c_u.text_input(f"軸の単位", key=f"aunit_{idx}")
                     
                     c_mi, c_ma = st.columns(2)
@@ -217,7 +217,7 @@ with st.sidebar:
                     a_maj_step = c_maj.number_input("主目盛り間隔", value=None, step=1.0, key=f"amaj_{idx}")
                     a_min_step = c_min.number_input("副目盛り間隔", value=None, step=1.0, key=f"amin_s_{idx}")
                     
-                    a_grid_maj = st.checkbox("主グリッド表示", value=True if idx==0 else False, key=f"agrid_maj_{idx}")
+                    a_grid_maj = st.checkbox("主グリッド表示", value=True if idx==1 else False, key=f"agrid_maj_{idx}")
                     a_grid_min = st.checkbox("副グリッド表示", value=False, key=f"agrid_min_{idx}")
                     a_tick_dir = st.selectbox("目盛り線の向き", ["in", "out", "inout"], index=0, key=f"adir_{idx}")
                     
@@ -228,13 +228,13 @@ with st.sidebar:
                         "grid_maj": a_grid_maj, "grid_min": a_grid_min, "dir": a_tick_dir
                     }
         else:
-            for col in y_axes: y_axis_mapping[col] = 0
+            for col in y_axes: y_axis_mapping[col] = 1
             if chart_type in ["ヒストグラム", "箱ひげ図", "バイオリンプロット"]:
                 with st.expander("y軸の基本設定"):
-                    axis_configs[0]["name"] = st.text_input("y軸の名前", value="頻度" if chart_type=="ヒストグラム" else "")
-                    axis_configs[0]["unit"] = st.text_input("y軸の単位")
-                    axis_configs[0]["min"] = st.number_input("最小範囲", value=None)
-                    axis_configs[0]["max"] = st.number_input("最大範囲", value=None)
+                    axis_configs[1]["name"] = st.text_input("y軸の名前", value="頻度" if chart_type=="ヒストグラム" else "")
+                    axis_configs[1]["unit"] = st.text_input("y軸の単位")
+                    axis_configs[1]["min"] = st.number_input("最小範囲", value=None)
+                    axis_configs[1]["max"] = st.number_input("最大範囲", value=None)
 
         st.divider()
         st.header("⑤ 画像の設定")
@@ -351,7 +351,7 @@ if df is not None:
                 is_numeric_x = pd.api.types.is_numeric_dtype(plot_df[x_axis])
                 
                 # 軸の初期化
-                axes = {0: ax}
+                axes = {1: ax}
                 
                 # 座標の決定
                 if is_numeric_x and chart_type != "棒グラフ":
@@ -371,15 +371,13 @@ if df is not None:
                         total_width = 0.8
                     width = total_width / len(bar_cols)
                 
-                max_axis_idx = max(y_axis_mapping.values()) if y_axis_mapping else 0
-                for i in range(1, max_axis_idx+1):
+                max_axis_idx = max(y_axis_mapping.values()) if y_axis_mapping else 1
+                for i in range(2, max_axis_idx+1):
                     new_ax = ax.twinx()
-                    if i > 1:
-                        new_ax.spines["right"].set_position(("axes", 1.0 + (i-1)*0.15))
+                    if i > 2:
+                        # 3本目以降はオフセット
+                        new_ax.spines["right"].set_position(("axes", 1.0 + (i-2)*0.15))
                     axes[i] = new_ax
-                    code_snippets.append(f"ax{i} = ax.twinx()")
-                    if i > 1:
-                        code_snippets.append(f"ax{i}.spines['right'].set_position(('axes', {1.0 + (i-1)*0.15}))")
 
                 bar_count = 0
                 for col in y_axes:
@@ -389,31 +387,26 @@ if df is not None:
                     p_size = conf["size"]
                     p_label = col if conf["show_legend"] else "_nolegend_"
                     
-                    a_idx = y_axis_mapping.get(col, 0)
+                    a_idx = y_axis_mapping.get(col, 1)
                     target_ax = axes[a_idx]
-                    ax_prefix = f"ax{a_idx}" if a_idx > 0 else "ax"
+                    ax_prefix = f"ax{a_idx}" if a_idx > 1 else "ax"
                     
                     if p_type == "Line":
                         target_ax.plot(x_plot, plot_df[col], marker='o', color=p_color, linewidth=p_size, markersize=p_size*2, label=p_label)
-                        code_snippets.append(f"{ax_prefix}.plot(x_plot, plot_df['{col}'], marker='o', color='{p_color}', linewidth={p_size}, markersize={p_size*2}, label='{p_label}')")
                     elif p_type == "Scatter":
                         target_ax.scatter(x_plot, plot_df[col], s=p_size*10, color=p_color, label=p_label, alpha=0.7)
-                        code_snippets.append(f"{ax_prefix}.scatter(x_plot, plot_df['{col}'], s={p_size*10}, color='{p_color}', label='{p_label}', alpha=0.7)")
                     elif p_type == "Bar":
                         current_width = width * p_size
                         if len(bar_cols) > 0:
                             offset = (bar_count - len(bar_cols)/2 + 0.5) * width
                             target_ax.bar(x_plot + offset, plot_df[col], current_width, color=p_color, label=p_label)
-                            code_snippets.append(f"{ax_prefix}.bar(x_plot + {offset}, plot_df['{col}'], {current_width}, color='{p_color}', label='{p_label}')")
                             bar_count += 1
                         else:
                             target_ax.bar(x_plot, plot_df[col], width=current_width, color=p_color, label=p_label)
-                            code_snippets.append(f"{ax_prefix}.bar(x_plot, plot_df['{col}'], width={current_width}, color='{p_color}', label='{p_label}')")
                 
                 if use_index_x:
                     ax.set_xticks(x_plot)
                     ax.set_xticklabels(plot_df[x_axis])
-                    code_snippets.insert(0, f"ax.set_xticks(x_plot)\nax.set_xticklabels(plot_df['{x_axis}'])")
                 
                 # X軸の詳細設定
                 ax.set_xlabel(fmt(x_name, x_unit), fontsize=font_label_x, color='#1F2937')
@@ -447,9 +440,9 @@ if df is not None:
                     target_ax.grid(conf["grid_min"], which='minor', axis='y', linestyle=':', alpha=0.3, color='#E5E7EB')
 
             elif chart_type == "ヒストグラム":
-                axes = {0: ax}
+                axes = {1: ax}
                 ax.hist([df[col].dropna() for col in y_axes], bins=hist_bins, label=y_axes, alpha=0.7)
-                conf = axis_configs[0]
+                conf = axis_configs[1]
                 ax.set_ylabel(fmt(conf["name"], conf["unit"]), fontsize=conf["label_size"])
                 if conf["min"] is not None: ax.set_ylim(bottom=conf["min"])
                 if conf["max"] is not None: ax.set_ylim(top=conf["max"])
@@ -534,11 +527,11 @@ ax.tick_params(axis='x', labelsize={font_tick_x}, direction='{tick_dir_x}')
                 full_code += f"\n# プロットとY軸の設定\n"
                 for i, idx in enumerate(sorted(axis_configs.keys())):
                     conf = axis_configs[idx]
-                    prefix = f"ax{idx}" if idx > 0 else "ax"
-                    if idx > 0:
+                    prefix = f"ax{idx}" if idx > 1 else "ax"
+                    if idx > 1:
                         full_code += f"{prefix} = ax.twinx()\n"
-                        if idx > 1:
-                            full_code += f"{prefix}.spines['right'].set_position(('axes', {1.0 + (idx-1)*0.15}))\n"
+                        if idx > 2:
+                            full_code += f"{prefix}.spines['right'].set_position(('axes', {1.0 + (idx-2)*0.15}))\n"
                     
                     full_code += f"{prefix}.set_ylabel('{fmt(conf['name'], conf['unit'])}', fontsize={conf['label_size']})\n"
                     full_code += f"{prefix}.tick_params(axis='y', labelsize={conf['tick_size']}, direction='{conf['dir']}')\n"
