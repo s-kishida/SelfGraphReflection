@@ -282,7 +282,12 @@ with st.sidebar:
                 if col_del.button(f"削除", key=f"del_fit_{i}"):
                     continue # この要素をスキップして削除を実現
                 
-                f_type = st.selectbox("種類", ["直線近似 (y = ax + b)", "カスタム数式"], index=0 if fit["type"]=="直線近似 (y = ax + b)" else 1, key=f"f_type_{i}")
+                f_type = st.selectbox("種類", ["直線近似 (y = ax + b)", "多項式近似", "正弦波", "指数関数", "対数関数", "ガウス関数", "カスタム数式"], index=0, key=f"f_type_{i}")
+                
+                f_degree = fit.get("degree", 2)
+                if f_type == "多項式近似":
+                    f_degree = st.number_input("次数", 2, 10, f_degree, key=f"f_deg_{i}")
+                
                 f_target = st.selectbox("対象データ", y_axes, index=y_axes.index(fit["target"]) if fit["target"] in y_axes else 0, key=f"f_target_{i}")
                 f_color = st.color_picker("線の色", value=fit["color"], key=f"f_color_{i}")
                 
@@ -300,7 +305,8 @@ with st.sidebar:
                 
                 new_fittings.append({
                     "type": f_type, "target": f_target, "formula": f_formula,
-                    "range_min": f_range_min, "range_max": f_range_max, "color": f_color
+                    "range_min": f_range_min, "range_max": f_range_max, "color": f_color,
+                    "degree": f_degree
                 })
         
         st.session_state.fittings = new_fittings
@@ -500,8 +506,44 @@ if df is not None:
                                     z = np.polyfit(fit_x_clean, fit_y_clean, 1)
                                     p = np.poly1d(z)
                                     x_range = np.linspace(fit_cfg["range_min"], fit_cfg["range_max"], 100)
-                                    ax.plot(x_range, p(x_range), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit({target_col}): y={z[0]:.3f}x + {z[1]:.3f}")
+                                    ax.plot(x_range, p(x_range), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: y={z[0]:.3f}x + {z[1]:.3f}")
                                 
+                                elif fit_cfg["type"] == "多項式近似":
+                                    deg = fit_cfg["degree"]
+                                    z = np.polyfit(fit_x_clean, fit_y_clean, deg)
+                                    p = np.poly1d(z)
+                                    x_range = np.linspace(fit_cfg["range_min"], fit_cfg["range_max"], 100)
+                                    ax.plot(x_range, p(x_range), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: {deg}次多項式")
+
+                                elif fit_cfg["type"] == "正弦波":
+                                    def func(x, a, b, c, d): return a * np.sin(b * x + c) + d
+                                    # 初期値推定
+                                    p0 = [np.std(fit_y_clean) * 2**0.5, 2*np.pi / (max(fit_x_clean)-min(fit_x_clean)), 0, np.mean(fit_y_clean)]
+                                    popt, _ = curve_fit(func, fit_x_clean, fit_y_clean, p0=p0)
+                                    x_range = np.linspace(fit_cfg["range_min"], fit_cfg["range_max"], 200)
+                                    ax.plot(x_range, func(x_range, *popt), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: a*sin(bx+c)+d (a={popt[0]:.2f})")
+
+                                elif fit_cfg["type"] == "指数関数":
+                                    def func(x, a, b, c): return a * np.exp(b * x) + c
+                                    popt, _ = curve_fit(func, fit_x_clean, fit_y_clean, p0=[1, 0.1, np.min(fit_y_clean)])
+                                    x_range = np.linspace(fit_cfg["range_min"], fit_cfg["range_max"], 100)
+                                    ax.plot(x_range, func(x_range, *popt), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: a*exp(bx)+c (b={popt[1]:.3f})")
+
+                                elif fit_cfg["type"] == "対数関数":
+                                    # x > 0 のみ
+                                    valid = fit_x_clean > 0
+                                    def func(x, a, b): return a * np.log(x) + b
+                                    popt, _ = curve_fit(func, fit_x_clean[valid], fit_y_clean[valid])
+                                    x_range = np.linspace(max(0.01, fit_cfg["range_min"]), fit_cfg["range_max"], 100)
+                                    ax.plot(x_range, func(x_range, *popt), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: a*log(x)+b (a={popt[0]:.2f})")
+
+                                elif fit_cfg["type"] == "ガウス関数":
+                                    def func(x, a, b, c, d): return a * np.exp(-(x-b)**2 / (2*c**2)) + d
+                                    p0 = [max(fit_y_clean)-min(fit_y_clean), fit_x_clean[np.argmax(fit_y_clean)], np.std(fit_x_clean), min(fit_y_clean)]
+                                    popt, _ = curve_fit(func, fit_x_clean, fit_y_clean, p0=p0)
+                                    x_range = np.linspace(fit_cfg["range_min"], fit_cfg["range_max"], 200)
+                                    ax.plot(x_range, func(x_range, *popt), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit: Gaussian (center={popt[1]:.2f})")
+
                                 elif fit_cfg["type"] == "カスタム数式":
                                     formula = fit_cfg["formula"]
                                     params_found = sorted(list(set(re.findall(r'\b([a-zA-Z])\b', formula)) - {'x', 'e'}))
