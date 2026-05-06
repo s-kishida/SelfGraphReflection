@@ -14,12 +14,12 @@ def local_css():
         /* 全体の背景色（Pure White） */
         .stApp {
             background-color: #FAFAFA;
-            color: #111827; /* より濃い黒 */
+            color: #1F2937; /* より濃い黒 */
         }
         /* サイドバー全体の背景とテキスト色 */
         [data-testid="stSidebar"], [data-testid="stSidebar"] .stMarkdown p {
             background-color: #E5E7E8;
-            color: #111827 !important;
+            color: #1F2937 !important;
         }
         /* セクション見出し（FOREST） */
         h1, h2, h3, h4, h5, h6, [data-testid="stSidebar"] h2 {
@@ -32,8 +32,8 @@ def local_css():
         .stMultiSelect div[data-baseweb="select"] > div,
         .stNumberInput input,
         .stTextArea textarea {
-            background-color: #FFFFFF !important;
-            color: #111827 !important;
+            background-color: #F7F3EC !important;
+            color: #1F2937 !important;
             border: 1px solid #D1D5DB !important;
         }
         /* Number Input の +/- ボタンや背景 */
@@ -43,7 +43,7 @@ def local_css():
         /* エキスパンダーのタイトルと背景 */
         .stExpander {
             background-color: #FFFFFF !important;
-            border: 1px solid #E5E7EB !important;
+            border: 1px solid #1F2937 !important;
         }
         .stExpander details summary {
             color: #111827 !important;
