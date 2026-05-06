@@ -89,9 +89,9 @@ local_css()
 st.title("Self-Graph Reflection")
 st.markdown("<p style='color: #374151; margin-top: -15px;'>高校生のためのグラフ作成ツール</p>", unsafe_allow_html=True)
 
-# --- サイドバー：以前のセクション構成を再現 ---
+# --- サイドバー ---
 with st.sidebar:
-    st.header("データのインポート")
+    st.header("① データのインポート")
     uploaded_file = st.file_uploader("CSVファイルを選択", type="csv")
     
     df = None
@@ -106,160 +106,156 @@ with st.sidebar:
             st.error(f"Error: {e}")
 
     if df is not None:
+        # デフォルト設定の初期化（エラー防止）
+        font_label_x, font_tick_x = 18, 14
+        grid_major_x, grid_minor_x = True, False
+        tick_dir_x = "in"
+        show_title, font_title = True, 24
+        chart_title = ""
+        width_val, height_val, dpi_val = 10.0, 6.0, 150
+        aspect_val = "auto"
+
         st.divider()
-        st.header("軸の設定")
+        st.header("② グラフの種類と軸の選択")
         chart_type = st.selectbox("グラフの種類の選択", [
             "折れ線グラフ", "散布図", "棒グラフ", "複合グラフ", "ヒストグラム", "円グラフ", "箱ひげ図", "バイオリンプロット"
         ])
         
-        # グラフの種類に応じて設定項目を変える
+        # 軸の選択
         if chart_type in ["折れ線グラフ", "散布図", "棒グラフ", "複合グラフ"]:
-            x_axis = st.selectbox("x軸(横軸)", df.columns)
-            
-            # 数値列を優先的にリストアップ
+            x_axis = st.selectbox("x軸(横軸)に使うデータ", df.columns)
             numeric_cols = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c]) and c != x_axis]
             other_cols = [c for c in df.columns if not pd.api.types.is_numeric_dtype(df[c]) and c != x_axis]
             selectable_y = numeric_cols + other_cols
+            y_axes = st.multiselect("y軸(縦軸)に使うデータ (複数選択可)", selectable_y, default=[numeric_cols[0]] if numeric_cols else [])
             
-            y_axes = st.multiselect("y軸(縦軸: 複数選択可)", selectable_y, default=[numeric_cols[0]] if numeric_cols else [])
-            
-            # デフォルト配色（イメージのパレットに基づいた配色）
-            default_colors = ["#2E5B4E", "#A7C1B2", "#F2C94C", "#4B5563", "#768B7E", "#E09E8F", "#8FA2E0", "#E0C38F"]
-            
-            y_configs = {}
+            # 各系列の詳細設定（色やサイズ）
             if y_axes:
-                with st.expander("データごとのマーカーのサイズ・色設定", expanded=True):
+                default_colors = ["#2E5B4E", "#A7C1B2", "#F2C94C", "#4B5563", "#768B7E", "#E09E8F", "#8FA2E0", "#E0C38F"]
+                y_configs = {}
+                with st.expander("データごとの色・マーカー設定"):
                     for i, col in enumerate(y_axes):
                         st.write(f"**{col}**")
                         c_typ, c_col, c_siz, c_leg = st.columns([2, 1, 1, 1])
-                        
-                        # プロットの種類
                         if chart_type == "複合グラフ":
                             p_type = c_typ.selectbox("Type", ["Line", "Scatter", "Bar"], key=f"type_{col}")
                         else:
                             p_type = "Line" if chart_type == "折れ線グラフ" else ("Scatter" if chart_type == "散布図" else "Bar")
-                        
-                        # 色
                         p_color = c_col.color_picker("Color", default_colors[i % len(default_colors)], key=f"color_{col}")
-                        
-                        # サイズ
                         if p_type == "Bar":
-                            p_size = c_siz.number_input("Width Scale", 0.1, 2.0, 1.0, step=0.1, format="%g", key=f"size_{col}")
+                            p_size = c_siz.number_input("Width", 0.1, 2.0, 1.0, step=0.1, key=f"size_{col}")
                         else:
-                            p_size = c_siz.number_input("Size", 1.0, 50.0, 8.0 if p_type == "Scatter" else 3.0, step=1.0, format="%g", key=f"size_{col}")
-                        
-                        # 凡例表示
+                            p_size = c_siz.number_input("Size", 1.0, 50.0, 8.0 if p_type == "Scatter" else 3.0, step=1.0, key=f"size_{col}")
                         p_leg = c_leg.checkbox("Legend", value=True, key=f"leg_{col}")
-                        
                         y_configs[col] = {"type": p_type, "color": p_color, "size": p_size, "show_legend": p_leg}
-
-            y_axis_mapping = {}
-            axis_configs = {0: {"name": y_axes[0] if y_axes else "", "unit": "", "min": None, "max": None, "label_size": 18, "tick_size": 14}}
-            
-            if y_axes and chart_type != "円グラフ":
-                with st.expander("Axis Allocation & Settings (軸の設定)", expanded=False):
-                    active_ids = {0}
-                    for col in y_axes:
-                        y_axis_mapping[col] = st.number_input(f"Axis for {col} (0:左, 1:右, 2+:右オフセット)", 0, 5, 0, key=f"axis_{col}")
-                        active_ids.add(y_axis_mapping[col])
-                    
-                    st.divider()
-                    for idx in sorted(list(active_ids)):
-                        st.write(f"**Axis {idx} Config**")
-                        c_n, c_u = st.columns(2)
-                        a_name = c_n.text_input(f"Name", value=y_axes[0] if idx==0 and y_axes else "", key=f"aname_{idx}")
-                        a_unit = c_u.text_input(f"Unit", key=f"aunit_{idx}")
-                        
-                        c_mi, c_ma = st.columns(2)
-                        a_min = c_mi.number_input(f"Min", value=None, step=1.0, format="%g", key=f"amin_{idx}")
-                        a_max = c_ma.number_input(f"Max", value=None, step=1.0, format="%g", key=f"amax_{idx}")
-                        
-                        c_fl, c_ft = st.columns(2)
-                        a_font_l = c_fl.number_input(f"Label Size", 10, 40, 18, step=1, key=f"afont_l_{idx}")
-                        a_font_t = c_ft.number_input(f"Tick Size", 8, 30, 14, step=1, key=f"afont_t_{idx}")
-                        
-                        axis_configs[idx] = {"name": a_name, "unit": a_unit, "min": a_min, "max": a_max, "label_size": a_font_l, "tick_size": a_font_t}
-            else:
-                for col in y_axes: y_axis_mapping[col] = 0
+        
         elif chart_type == "円グラフ":
-            x_axis = st.selectbox("Labels (ラベルにする列)", df.columns)
-            
-            numeric_cols = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c]) and c != x_axis]
-            other_cols = [c for c in df.columns if not pd.api.types.is_numeric_dtype(df[c]) and c != x_axis]
-            selectable_y = numeric_cols + other_cols
-            
-            y_axes = st.multiselect("Values (数値の列: 1つ選択)", selectable_y, default=[numeric_cols[0]] if numeric_cols else [], max_selections=1)
+            x_axis = st.selectbox("ラベル(項目)に使うデータ", df.columns)
+            y_axes = st.multiselect("値に使うデータ (1つ選択)", df.columns, max_selections=1)
         elif chart_type == "ヒストグラム":
             x_axis = None
-            y_axes = st.multiselect("Data (対象の列: 複数選択可)", df.columns, default=[df.columns[0]])
+            y_axes = st.multiselect("データ(対象の列)", df.columns, default=[df.columns[0]])
             hist_bins = st.number_input("Bins (階級数)", 1, 100, 20, step=1)
         else: # 箱ひげ図, バイオリンプロット
             x_axis = None
-            y_axes = st.multiselect("Data (対象の列: 複数選択可)", df.columns, default=df.columns.tolist()[:3])
-        
+            y_axes = st.multiselect("データ(対象の列)", df.columns, default=df.columns.tolist()[:3])
 
         st.divider()
-        st.header("タイトル・軸の名前の設定")
-        default_title = f"{chart_type}"
-        if y_axes:
-            if chart_type in ["折れ線グラフ", "散布図", "棒グラフ"] and x_axis:
+        st.header("③ x軸の設定")
+        if chart_type not in ["円グラフ", "ヒストグラム", "箱ひげ図", "バイオリンプロット"]:
+            c_xn, c_xu = st.columns(2)
+            x_name = c_xn.text_input("x軸の名前", value=x_axis if x_axis else "")
+            x_unit = c_xu.text_input("x軸の単位", placeholder="s, m, etc.")
+            
+            c_xfl, c_xft = st.columns(2)
+            font_label_x = c_xfl.number_input("軸の名前のフォントサイズ", 10, 40, 18, key="x_label_fs")
+            font_tick_x = c_xft.number_input("目盛りの値のフォントサイズ", 8, 30, 14, key="x_tick_fs")
+            
+            c_xmin, c_xmax = st.columns(2)
+            xmin_val = c_xmin.number_input("x軸の最小範囲 (空白で自動)", value=None, step=1.0, format="%g")
+            xmax_val = c_xmax.number_input("x軸の最大範囲 (空白で自動)", value=None, step=1.0, format="%g")
+            
+            with st.expander("x軸の目盛り・グリッド詳細"):
+                x_major_step = st.number_input("主目盛りの間隔", value=None, step=1.0, format="%g", key="x_maj")
+                x_minor_step = st.number_input("副目盛りの間隔", value=None, step=1.0, format="%g", key="x_min")
+                grid_major_x = st.checkbox("主目盛りのグリッドを表示", value=True, key="x_grid_maj")
+                grid_minor_x = st.checkbox("副目盛りのグリッドを表示", value=False, key="x_grid_min")
+                tick_dir_x = st.selectbox("目盛り線の向き", ["in", "out", "inout"], index=0, key="x_tick_dir")
+        else:
+            st.info("このグラフタイプではx軸の詳細設定は不要です。")
+
+        st.divider()
+        st.header("④ y軸の設定")
+        y_axis_mapping = {}
+        axis_configs = {0: {"name": y_axes[0] if y_axes else "", "unit": "", "min": None, "max": None, "label_size": 18, "tick_size": 14, "major": None, "minor": None, "grid_maj": True, "grid_min": False, "dir": "in"}}
+        
+        if y_axes and chart_type not in ["円グラフ", "ヒストグラム", "箱ひげ図", "バイオリンプロット"]:
+            active_ids = {0}
+            with st.expander("軸の割り当て (2軸以上の設定)"):
+                for col in y_axes:
+                    y_axis_mapping[col] = st.number_input(f"『{col}』の軸番号 (0:左, 1:右, 2+:右オフセット)", 0, 5, 0, key=f"axis_map_{col}")
+                    active_ids.add(y_axis_mapping[col])
+            
+            for idx in sorted(list(active_ids)):
+                with st.expander(f"Axis {idx} の詳細設定"):
+                    c_n, c_u = st.columns(2)
+                    a_name = c_n.text_input(f"軸の名前", value=y_axes[0] if idx==0 and y_axes else "", key=f"aname_{idx}")
+                    a_unit = c_u.text_input(f"軸の単位", key=f"aunit_{idx}")
+                    
+                    c_mi, c_ma = st.columns(2)
+                    a_min = c_mi.number_input(f"最小範囲", value=None, step=1.0, format="%g", key=f"amin_{idx}")
+                    a_max = c_ma.number_input(f"最大範囲", value=None, step=1.0, format="%g", key=f"amax_{idx}")
+                    
+                    c_fl, c_ft = st.columns(2)
+                    a_font_l = c_fl.number_input(f"軸名前FS", 10, 40, 18, key=f"afont_l_{idx}")
+                    a_font_t = c_ft.number_input(f"目盛りFS", 8, 30, 14, key=f"afont_t_{idx}")
+                    
+                    c_maj, c_min = st.columns(2)
+                    a_maj_step = c_maj.number_input("主目盛り間隔", value=None, step=1.0, key=f"amaj_{idx}")
+                    a_min_step = c_min.number_input("副目盛り間隔", value=None, step=1.0, key=f"amin_s_{idx}")
+                    
+                    a_grid_maj = st.checkbox("主グリッド表示", value=True if idx==0 else False, key=f"agrid_maj_{idx}")
+                    a_grid_min = st.checkbox("副グリッド表示", value=False, key=f"agrid_min_{idx}")
+                    a_tick_dir = st.selectbox("目盛り線の向き", ["in", "out", "inout"], index=0, key=f"adir_{idx}")
+                    
+                    axis_configs[idx] = {
+                        "name": a_name, "unit": a_unit, "min": a_min, "max": a_max, 
+                        "label_size": a_font_l, "tick_size": a_font_t,
+                        "major": a_maj_step, "minor": a_min_step,
+                        "grid_maj": a_grid_maj, "grid_min": a_grid_min, "dir": a_tick_dir
+                    }
+        else:
+            for col in y_axes: y_axis_mapping[col] = 0
+            if chart_type in ["ヒストグラム", "箱ひげ図", "バイオリンプロット"]:
+                with st.expander("y軸の基本設定"):
+                    axis_configs[0]["name"] = st.text_input("y軸の名前", value="頻度" if chart_type=="ヒストグラム" else "")
+                    axis_configs[0]["unit"] = st.text_input("y軸の単位")
+                    axis_configs[0]["min"] = st.number_input("最小範囲", value=None)
+                    axis_configs[0]["max"] = st.number_input("最大範囲", value=None)
+
+        st.divider()
+        st.header("⑤ 画像の設定")
+        show_title = st.checkbox("タイトルを表示する", value=True)
+        chart_title = ""
+        if show_title:
+            default_title = f"{chart_type}"
+            if y_axes and chart_type in ["折れ線グラフ", "散布図", "棒グラフ", "複合グラフ"]:
                 default_title = f"{', '.join(y_axes)} vs {x_axis}"
-            else:
-                default_title = f"{chart_type}: {', '.join(y_axes)}"
-                
-        chart_title = st.text_input("グラフのタイトル", value=default_title)
+            chart_title = st.text_input("グラフのタイトルを入力", value=default_title)
+            font_title = st.number_input("タイトルのフォントサイズ", 10, 50, 24)
         
-        c1, c2 = st.columns(2)
-        x_name = c1.text_input("X軸の名前", value=x_axis if x_axis else "")
-        x_unit = c2.text_input("X軸の単位", placeholder="s, m, etc.")
+        c_w, c_h = st.columns(2)
+        width_val = c_w.number_input("画像の横幅", 5.0, 30.0, 10.0, step=1.0)
+        height_val = c_h.number_input("画像の縦幅", 3.0, 30.0, 6.0, step=1.0)
         
+        dpi_val = st.number_input("画像のDPI (高画質なら300推奨)", 72, 600, 150, step=10)
         
-        st.subheader("フォントサイズの調整")
-        f1, f2, f3 = st.columns(3)
-        font_title = f1.number_input("タイトルのフォントサイズ", 10, 50, 24, step=1)
-        # Label/Tick sizes are now primarily handled per-axis in Axis Settings
-        font_label_global = f2.number_input("軸の名前のフォントサイズ", 10, 40, 18, step=1)
-        font_tick_global = f3.number_input("軸の目盛りのフォントサイズ", 8, 30, 14, step=1)
-
-        # Global settings are now handled per-series
-
-        st.divider()
-        st.header("グラフのサイズ設定")
-        s1, s2 = st.columns(2)
-        width_val = s1.number_input("横幅", 5.0, 30.0, 10.0, step=1.0, format="%g")
-        height_val = s2.number_input("縦幅", 3.0, 30.0, 6.0, step=1.0, format="%g")
-        
-        aspect_choice = st.selectbox("縦横比", ["自動", "1:1", "カスタム"], index=0)
-        aspect_val = None
-        if aspect_choice == "自動":
-            aspect_val = "auto"
-        elif aspect_choice == "1:1":
-            aspect_val = "equal"
+        aspect_choice = st.selectbox("縦横比の設定", ["自動", "1:1", "カスタム"], index=0)
+        aspect_val = "auto"
+        if aspect_choice == "1:1": aspect_val = "equal"
         elif aspect_choice == "カスタム":
-            aspect_val = st.number_input("カスタムの比率 (縦幅/横幅)", value=1.0, step=0.1, format="%g")
+            aspect_val = st.number_input("カスタム比率 (縦/横)", value=1.0, step=0.1)
 
-        st.divider()
-        st.header("グラフの描写範囲の設定")
-        c_sc1, c_sc2 = st.columns(2)
-        xmin_val = c_sc1.number_input("X軸の最小 (空白の場合は自動調整)", value=None, step=1.0, format="%g")
-        xmax_val = c_sc2.number_input("X軸の最大 (空白の場合は自動調整)", value=None, step=1.0, format="%g")
-        
-        c_sc3, c_sc4 = st.columns(2)
-        ymin_val = c_sc3.number_input("Y軸の最小 (空白の場合は自動調整)", value=None, step=1.0, format="%g")
-        ymax_val = c_sc4.number_input("Y軸の最大 (空白の場合は自動調整)", value=None, step=1.0, format="%g")
-
-        st.divider()
-        st.header("目盛りとグリッドの設定")
-        with st.expander("x軸の目盛り線の設定"):
-            x_major_step = st.number_input("x軸の主目盛り線の間隔", value=None, step=1.0, format="%g", key="x_maj")
-            x_minor_step = st.number_input("x軸の副目盛り線の間隔", value=None, step=1.0, format="%g", key="x_min")
-        with st.expander("y軸の目盛り線の設定"):    
-            y_major_step = st.number_input("y軸の主目盛り線の間隔", value=None, step=1.0, format="%g", key="y_maj")
-            y_minor_step = st.number_input("y軸の副目盛り線の間隔", value=None, step=1.0, format="%g", key="y_min")
-        with st.expander("グリッドと目盛り線の向き"):
-            grid_major = st.checkbox("主目盛りのグリッドの表示", value=True)
-            grid_minor = st.checkbox("副目盛りのグリッドの表示", value=False)
-            tick_dir = st.selectbox("目盛り線のの向き", ["in", "out", "inout"], index=0)
 
 # --- メインエリア ---
 if df is not None:
@@ -356,18 +352,15 @@ if df is not None:
                 
                 # 座標の決定
                 if is_numeric_x and chart_type != "棒グラフ":
-                    # 実数値ベース
                     x_plot = plot_df[x_axis].values
                     use_index_x = False
                 else:
-                    # カテゴリベース
                     x_plot = np.arange(len(plot_df))
                     use_index_x = True
                 
                 bar_cols = [c for c, conf in y_configs.items() if conf.get("type") == "Bar"]
                 if bar_cols:
                     if not use_index_x and len(df) > 1:
-                        # 数値軸の場合、データの最小間隔に合わせて棒の幅を計算
                         diffs = np.diff(np.sort(x_plot))
                         min_diff = np.min(diffs[diffs > 0]) if any(diffs > 0) else 1.0
                         total_width = min_diff * 0.8
@@ -419,61 +412,66 @@ if df is not None:
                     ax.set_xticklabels(plot_df[x_axis])
                     code_snippets.insert(0, f"ax.set_xticks(x_plot)\nax.set_xticklabels(plot_df['{x_axis}'])")
                 
-                code_snippets.insert(0, f"import numpy as np\nx_plot = ... # values or arange\n")
+                # X軸の詳細設定
+                ax.set_xlabel(fmt(x_name, x_unit), fontsize=font_label_x, color='#1F2937')
+                ax.tick_params(axis='x', labelsize=font_tick_x, colors='#1F2937', direction=tick_dir_x)
+                if xmin_val is not None: ax.set_xlim(left=xmin_val)
+                if xmax_val is not None: ax.set_xlim(right=xmax_val)
+                
+                if x_major_step or x_minor_step or grid_minor_x:
+                    ax.minorticks_on()
+                if x_major_step: ax.xaxis.set_major_locator(MultipleLocator(x_major_step))
+                if x_minor_step: ax.xaxis.set_minor_locator(MultipleLocator(x_minor_step))
+                
+                ax.grid(grid_major_x, which='major', axis='x', linestyle='--', alpha=0.5, color='#E5E7EB')
+                ax.grid(grid_minor_x, which='minor', axis='x', linestyle=':', alpha=0.3, color='#E5E7EB')
 
-                # 各軸の個別設定を適用
+                # Y軸の個別設定を適用
                 for i, target_ax in axes.items():
                     conf = axis_configs.get(i, {})
-                    a_name = conf.get("name", "")
-                    a_unit = conf.get("unit", "")
-                    a_min = conf.get("min")
-                    a_max = conf.get("max")
-                    a_label_fs = conf.get("label_size", font_label_global)
-                    a_tick_fs = conf.get("tick_size", font_tick_global)
+                    target_ax.set_ylabel(fmt(conf["name"], conf["unit"]), fontsize=conf["label_size"], color='#1F2937')
+                    target_ax.tick_params(axis='y', labelsize=conf["tick_size"], colors='#1F2937', direction=conf["dir"])
                     
-                    target_ax.set_ylabel(fmt(a_name, a_unit), fontsize=a_label_fs, color='#1F2937')
-                    target_ax.tick_params(axis='y', labelsize=a_tick_fs, colors='#1F2937')
+                    if conf["min"] is not None: target_ax.set_ylim(bottom=conf["min"])
+                    if conf["max"] is not None: target_ax.set_ylim(top=conf["max"])
                     
-                    if a_min is not None: target_ax.set_ylim(bottom=a_min)
-                    if a_max is not None: target_ax.set_ylim(top=a_max)
+                    if conf["major"] or conf["minor"] or conf["grid_min"]:
+                        target_ax.minorticks_on()
+                    if conf["major"]: target_ax.yaxis.set_major_locator(MultipleLocator(conf["major"]))
+                    if conf["minor"]: target_ax.yaxis.set_minor_locator(MultipleLocator(conf["minor"]))
                     
-                    ax_prefix = f"ax{i}" if i > 0 else "ax"
-                    code_snippets.append(f"{ax_prefix}.set_ylabel('{fmt(a_name, a_unit)}', fontsize={a_label_fs})")
-                    code_snippets.append(f"{ax_prefix}.tick_params(axis='y', labelsize={a_tick_fs})")
-                    if a_min is not None: code_snippets.append(f"{ax_prefix}.set_ylim(bottom={a_min})")
-                    if a_max is not None: code_snippets.append(f"{ax_prefix}.set_ylim(top={a_max})")
+                    target_ax.grid(conf["grid_maj"], which='major', axis='y', linestyle='--', alpha=0.5, color='#E5E7EB')
+                    target_ax.grid(conf["grid_min"], which='minor', axis='y', linestyle=':', alpha=0.3, color='#E5E7EB')
 
             elif chart_type == "ヒストグラム":
                 axes = {0: ax}
                 ax.hist([df[col].dropna() for col in y_axes], bins=hist_bins, label=y_axes, alpha=0.7)
-                code_snippets.append(f"ax.hist([df[col].dropna() for col in {y_axes}], bins={hist_bins}, label={y_axes}, alpha=0.7)")
+                conf = axis_configs[0]
+                ax.set_ylabel(fmt(conf["name"], conf["unit"]), fontsize=conf["label_size"])
+                if conf["min"] is not None: ax.set_ylim(bottom=conf["min"])
+                if conf["max"] is not None: ax.set_ylim(top=conf["max"])
                 
             elif chart_type == "円グラフ":
                 axes = {0: ax}
                 val_col = y_axes[0]
                 ax.pie(plot_df[val_col], labels=plot_df[x_axis], autopct='%1.1f%%', startangle=90, counterclock=False)
-                code_snippets.append(f"ax.pie(plot_df['{val_col}'], labels=plot_df['{x_axis}'], autopct='%1.1f%%', startangle=90, counterclock=False)")
                 
             elif chart_type == "箱ひげ図":
                 axes = {0: ax}
                 ax.boxplot([df[col].dropna() for col in y_axes], labels=y_axes)
-                code_snippets.append(f"ax.boxplot([df[col].dropna() for col in {y_axes}], labels={y_axes})")
                 
             elif chart_type == "バイオリンプロット":
                 axes = {0: ax}
                 parts = ax.violinplot([df[col].dropna() for col in y_axes], showmeans=True)
                 ax.set_xticks(range(1, len(y_axes) + 1))
                 ax.set_xticklabels(y_axes)
-                code_snippets.append(f"ax.violinplot([df[col].dropna() for col in {y_axes}], showmeans=True)")
 
-
-            if chart_type != "円グラフ":
-                ax.set_xlabel(fmt(x_name, x_unit) or (x_axis if x_axis else ""), fontsize=font_label_global, color='#1F2937')
+            # タイトル設定
+            if show_title:
+                ax.set_title(chart_title, fontsize=font_title, color='#1F2937', pad=20)
             
-            ax.set_title(chart_title, fontsize=font_title, color='#1F2937', pad=20)
-            
+            # 凡例
             if len(y_axes) > 1 and chart_type not in ["円グラフ", "ヒストグラム"]:
-                # 全ての軸から凡例情報を収集
                 h_all, l_all = [], []
                 for a_idx in sorted(axes.keys()):
                     h, l = axes[a_idx].get_legend_handles_labels()
@@ -484,52 +482,19 @@ if df is not None:
             elif chart_type == "ヒストグラム":
                 ax.legend()
                 
-            ax.tick_params(labelsize=font_tick_global, colors='#1F2937')
-            
-            # --- 目盛・グリッドの詳細設定適用 ---
-            if chart_type not in ["円グラフ", "ヒストグラム", "箱ひげ図", "バイオリンプロット"]:
-                # 先に補助目盛を有効化（後から呼ぶとLocatorがリセットされるため）
-                if x_minor_step or y_minor_step or grid_minor:
-                    ax.minorticks_on()
-                
-                # 目盛間隔の設定
-                if x_major_step: ax.xaxis.set_major_locator(MultipleLocator(x_major_step))
-                if x_minor_step: ax.xaxis.set_minor_locator(MultipleLocator(x_minor_step))
-                if y_major_step: ax.yaxis.set_major_locator(MultipleLocator(y_major_step))
-                if y_minor_step: ax.yaxis.set_minor_locator(MultipleLocator(y_minor_step))
-                
-                # 目盛自体の見た目調整
-                ax.tick_params(which='major', labelsize=font_tick_global, colors='#1F2937', length=6, direction=tick_dir)
-                ax.tick_params(which='minor', colors='#1F2937', length=3, direction=tick_dir)
-                
-                # グリッド
-                if grid_major:
-                    ax.grid(True, which='major', linestyle='--', alpha=0.5, color='#E5E7EB')
-                else:
-                    ax.grid(False, which='major')
-                if grid_minor:
-                    ax.grid(True, which='minor', linestyle=':', alpha=0.3, color='#E5E7EB')
-                else:
-                    ax.grid(False, which='minor')
-
-            if chart_type in ["折れ線グラフ", "散布図", "棒グラフ", "複合グラフ", "ヒストグラム", "箱ひげ図", "バイオリンプロット"]:
-                if xmin_val is not None: ax.set_xlim(left=xmin_val)
-                if xmax_val is not None: ax.set_xlim(right=xmax_val)
-                if ymin_val is not None: ax.set_ylim(bottom=ymin_val)
-                if ymax_val is not None: ax.set_ylim(top=ymax_val)
-                ax.set_aspect(aspect_val)
+            ax.set_aspect(aspect_val)
             
             # 表示
             st.pyplot(fig)
             
-            # 保存とコード
+            # 保存
             cx1, cx2 = st.columns(2)
             buf = io.BytesIO()
-            fig.savefig(buf, format="png", dpi=150, bbox_inches='tight')
+            fig.savefig(buf, format="png", dpi=dpi_val, bbox_inches='tight')
             cx1.download_button("画像をダウンロード", buf.getvalue(), f"graph.png", "image/png")
+
             
             with st.expander("Python Code"):
-                # データの集計ロジックをコードにも追加
                 agg_snippet = ""
                 if x_axis and chart_type in ["折れ線グラフ", "散布図", "棒グラフ", "複合グラフ", "円グラフ"] and not pd.api.types.is_numeric_dtype(df[x_axis]):
                     if df[x_axis].duplicated().any():
@@ -543,6 +508,7 @@ if df is not None:
 import matplotlib.pyplot as plt
 import japanize_matplotlib
 import numpy as np
+from matplotlib.ticker import MultipleLocator
 
 # データを読み込む
 df = pd.read_csv('data.csv')
@@ -552,58 +518,41 @@ df = pd.read_csv('data.csv')
 
 fig, ax = plt.subplots(figsize=({width_val}, {height_val}))
 
-{chr(10).join(code_snippets)}
-
-ax.set_title('{chart_title}', fontsize={font_title})
+# X軸の設定
+ax.set_xlabel('{fmt(x_name, x_unit)}', fontsize={font_label_x})
+ax.tick_params(axis='x', labelsize={font_tick_x}, direction='{tick_dir_x}')
 """
-                if chart_type != "円グラフ":
-                    full_code += f"ax.set_xlabel('{fmt(x_name, x_unit)}', fontsize={font_label_global})\n"
-                
-                full_code += f"ax.tick_params(labelsize={font_tick_global})\n"
-                
-                # 凡例のコード生成
-                if len(y_axes) > 1 and chart_type not in ["円グラフ", "ヒストグラム"]:
-                    full_code += """
-# 全ての軸から凡例情報を収集
-lines_all, labels_all = [], []
-for i in range(6): # ax, ax1, ..., ax5 をチェック
-    ax_name = 'ax' if i == 0 else f'ax{i}'
-    if ax_name in locals():
-        target_ax = locals()[ax_name]
-        lns, lbs = target_ax.get_legend_handles_labels()
-        lines_all.extend(lns)
-        labels_all.extend(lbs)
-ax.legend(lines_all, labels_all)
-"""
-                elif chart_type == "ヒストグラム":
-                    full_code += "ax.legend()\n"
-                    full_code += "from matplotlib.ticker import MultipleLocator\n"
-                    if x_major_step: full_code += f"ax.xaxis.set_major_locator(MultipleLocator({x_major_step}))\n"
-                    if x_minor_step: full_code += f"ax.xaxis.set_minor_locator(MultipleLocator({x_minor_step}))\n"
-                    if y_major_step: full_code += f"ax.yaxis.set_major_locator(MultipleLocator({y_major_step}))\n"
-                    if y_minor_step: full_code += f"ax.yaxis.set_minor_locator(MultipleLocator({y_minor_step}))\n"
-                    
-                    if grid_major:
-                        full_code += "ax.grid(True, which='major', linestyle='--', alpha=0.3)\n"
-                    if grid_minor:
-                        full_code += "ax.minorticks_on()\n"
-                        full_code += "ax.grid(True, which='minor', linestyle=':', alpha=0.2)\n"
-                    
-                    full_code += f"ax.tick_params(which='both', direction='{tick_dir}')\n"
+                if xmin_val is not None: full_code += f"ax.set_xlim(left={xmin_val})\n"
+                if xmax_val is not None: full_code += f"ax.set_xlim(right={xmax_val})\n"
+                if x_major_step: full_code += f"ax.xaxis.set_major_locator(MultipleLocator({x_major_step}))\n"
+                if x_minor_step: full_code += f"ax.xaxis.set_minor_locator(MultipleLocator({x_minor_step}))\n"
+                full_code += f"ax.grid({grid_major_x}, which='major', axis='x', linestyle='--', alpha=0.5)\n"
 
-                
-                # スケール設定をコードに追加
-                if chart_type in ["折れ線グラフ", "散布図", "棒グラフ", "複合グラフ", "ヒストグラム", "箱ひげ図", "バイオリンプロット"]:
-                    if xmin_val is not None: full_code += f"ax.set_xlim(left={xmin_val})\n"
-                    if xmax_val is not None: full_code += f"ax.set_xlim(right={xmax_val})\n"
-                    if ymin_val is not None: full_code += f"ax.set_ylim(bottom={ymin_val})\n"
-                    if ymax_val is not None: full_code += f"ax.set_ylim(top={ymax_val})\n"
-                    if aspect_val != 'auto':
-                        val_str = f"'{aspect_val}'" if isinstance(aspect_val, str) else aspect_val
-                        full_code += f"ax.set_aspect({val_str})\n"
+                full_code += f"\n# プロットとY軸の設定\n"
+                for i, idx in enumerate(sorted(axis_configs.keys())):
+                    conf = axis_configs[idx]
+                    prefix = f"ax{idx}" if idx > 0 else "ax"
+                    if idx > 0:
+                        full_code += f"{prefix} = ax.twinx()\n"
+                        if idx > 1:
+                            full_code += f"{prefix}.spines['right'].set_position(('axes', {1.0 + (idx-1)*0.15}))\n"
+                    
+                    full_code += f"{prefix}.set_ylabel('{fmt(conf['name'], conf['unit'])}', fontsize={conf['label_size']})\n"
+                    full_code += f"{prefix}.tick_params(axis='y', labelsize={conf['tick_size']}, direction='{conf['dir']}')\n"
+                    if conf['min'] is not None: full_code += f"{prefix}.set_ylim(bottom={conf['min']})\n"
+                    if conf['max'] is not None: full_code += f"{prefix}.set_ylim(top={conf['max']})\n"
+                    if conf['major']: full_code += f"{prefix}.yaxis.set_major_locator(MultipleLocator({conf['major']}))\n"
+                    if conf['minor']: full_code += f"{prefix}.yaxis.set_minor_locator(MultipleLocator({conf['minor']}))\n"
+                    full_code += f"{prefix}.grid({conf['grid_maj']}, which='major', axis='y', linestyle='--', alpha=0.5)\n"
 
-                full_code += "plt.show()"
+                if show_title:
+                    full_code += f"\nax.set_title('{chart_title}', fontsize={font_title})\n"
                 
+                if aspect_val != 'auto':
+                    val_str = f"'{aspect_val}'" if isinstance(aspect_val, str) else aspect_val
+                    full_code += f"ax.set_aspect({val_str})\n"
+
+                full_code += f"\nplt.show()"
                 st.code(full_code, language='python')
                 
         except Exception as e:
