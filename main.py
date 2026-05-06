@@ -258,29 +258,52 @@ with st.sidebar:
         
         st.divider()
         st.header("⑥ フィッティング設定")
-        fit_type = st.selectbox("フィッティングの種類", ["なし", "直線近似 (y = ax + b)", "カスタム数式"], key="fit_type")
         
-        fit_config = {"type": fit_type}
-        if fit_type != "なし":
-            if y_axes:
-                fit_config["target"] = st.selectbox("対象データ", y_axes, key="fit_target")
-                if fit_type == "カスタム数式":
-                    st.info("変数 x と係数 (a, b, c...) を使用したPython形式の数式を入力してください。例: a * x**2 + b * x + c")
-                    fit_config["formula"] = st.text_input("数式入力", value="a * x + b", key="fit_formula")
+        if "fittings" not in st.session_state:
+            st.session_state.fittings = []
+        
+        # フィッティング追加ボタン
+        if st.button("➕ フィッティングを追加"):
+            default_f = {
+                "type": "直線近似 (y = ax + b)",
+                "target": y_axes[0] if y_axes else "",
+                "formula": "a * x + b",
+                "range_min": float(df[x_axis].min()) if x_axis and x_axis in df.columns and pd.api.types.is_numeric_dtype(df[x_axis]) else 0.0,
+                "range_max": float(df[x_axis].max()) if x_axis and x_axis in df.columns and pd.api.types.is_numeric_dtype(df[x_axis]) else 1.0,
+                "color": "#FF0000"
+            }
+            st.session_state.fittings.append(default_f)
+            st.rerun()
+
+        new_fittings = []
+        for i, fit in enumerate(st.session_state.fittings):
+            with st.expander(f"フィッティング {i+1}: {fit['target']}", expanded=True):
+                col_del, col_empty = st.columns([1, 3])
+                if col_del.button(f"🗑️ 削除", key=f"del_fit_{i}"):
+                    continue # この要素をスキップして削除を実現
                 
-                # 範囲指定
+                f_type = st.selectbox("種類", ["直線近似 (y = ax + b)", "カスタム数式"], index=0 if fit["type"]=="直線近似 (y = ax + b)" else 1, key=f"f_type_{i}")
+                f_target = st.selectbox("対象データ", y_axes, index=y_axes.index(fit["target"]) if fit["target"] in y_axes else 0, key=f"f_target_{i}")
+                f_color = st.color_picker("線の色", value=fit["color"], key=f"f_color_{i}")
+                
+                f_formula = fit["formula"]
+                if f_type == "カスタム数式":
+                    st.caption("例: a * x**2 + b * x + c")
+                    f_formula = st.text_input("数式入力", value=fit["formula"], key=f"f_formula_{i}")
+                
+                f_range_min, f_range_max = fit["range_min"], fit["range_max"]
                 if x_axis and x_axis in df.columns and pd.api.types.is_numeric_dtype(df[x_axis]):
-                    min_x_data = float(df[x_axis].min())
-                    max_x_data = float(df[x_axis].max())
-                    st.write("フィッティング範囲")
-                    c_f1, c_f2 = st.columns(2)
-                    fit_config["range_min"] = c_f1.number_input("開始(x)", value=min_x_data, key="fit_range_min")
-                    fit_config["range_max"] = c_f2.number_input("終了(x)", value=max_x_data, key="fit_range_max")
-                else:
-                    fit_config["range_min"] = None
-                    fit_config["range_max"] = None
-            else:
-                st.warning("y軸のデータを選択してください。")
+                    st.write("範囲指定")
+                    c1, c2 = st.columns(2)
+                    f_range_min = c1.number_input("開始(x)", value=float(fit["range_min"]), key=f"f_range_min_{i}")
+                    f_range_max = c2.number_input("終了(x)", value=float(fit["range_max"]), key=f"f_range_max_{i}")
+                
+                new_fittings.append({
+                    "type": f_type, "target": f_target, "formula": f_formula,
+                    "range_min": f_range_min, "range_max": f_range_max, "color": f_color
+                })
+        
+        st.session_state.fittings = new_fittings
         
         st.divider()
         st.header("画像の設定（その他）")
@@ -459,57 +482,45 @@ if df is not None:
                 ax.tick_params(axis='x', labelsize=font_tick_x, colors='#1F2937', direction=tick_dir_x)
                 
                 # --- フィッティング処理 ---
-                if fit_config.get("type") != "なし" and "target" in fit_config:
-                    target_col = fit_config["target"]
+                for fit_cfg in st.session_state.get("fittings", []):
+                    target_col = fit_cfg["target"]
                     if target_col in plot_df.columns:
                         fit_x = plot_df[x_axis].values if not use_index_x else x_plot
                         fit_y = plot_df[target_col].values
                         
-                        # 数値データのみを抽出（NaN/Infを除去）
                         mask = np.isfinite(fit_x) & np.isfinite(fit_y)
+                        mask = mask & (fit_x >= fit_cfg["range_min"]) & (fit_x <= fit_cfg["range_max"])
                         
-                        # 範囲指定がある場合のフィルタリング
-                        if fit_config.get("range_min") is not None and fit_config.get("range_max") is not None:
-                            mask = mask & (fit_x >= fit_config["range_min"]) & (fit_x <= fit_config["range_max"])
+                        fit_x_clean = fit_x[mask]
+                        fit_y_clean = fit_y[mask]
                         
-                        fit_x = fit_x[mask]
-                        fit_y = fit_y[mask]
-                        
-                        if len(fit_x) > 1:
+                        if len(fit_x_clean) > 1:
                             try:
-                                if fit_config["type"] == "直線近似 (y = ax + b)":
-                                    z = np.polyfit(fit_x, fit_y, 1)
+                                if fit_cfg["type"] == "直線近似 (y = ax + b)":
+                                    z = np.polyfit(fit_x_clean, fit_y_clean, 1)
                                     p = np.poly1d(z)
-                                    x_range = np.linspace(min(fit_x), max(fit_x), 100)
-                                    ax.plot(x_range, p(x_range), "--", color="red", alpha=0.8, label=f"Fit: y={z[0]:.3f}x + {z[1]:.3f}")
+                                    x_range = np.linspace(fit_cfg["range_min"], fit_cfg["range_max"], 100)
+                                    ax.plot(x_range, p(x_range), "--", color=fit_cfg["color"], alpha=0.8, label=f"Fit({target_col}): y={z[0]:.3f}x + {z[1]:.3f}")
                                 
-                                elif fit_config["type"] == "カスタム数式":
-                                    formula = fit_config["formula"]
-                                    # パラメータ抽出 (a, b, c... x以外の一文字の変数)
+                                elif fit_cfg["type"] == "カスタム数式":
+                                    formula = fit_cfg["formula"]
                                     params_found = sorted(list(set(re.findall(r'\b([a-zA-Z])\b', formula)) - {'x', 'e'}))
                                     
-                                    if not params_found:
-                                        st.error("数式に係数（a, bなど）が見つかりません。")
-                                    else:
-                                        # ダイナミックな関数の定義
+                                    if params_found:
                                         def f(x, *args):
                                             ctx = {"x": x, "np": np, "math": np}
                                             for name, val in zip(params_found, args):
                                                 ctx[name] = val
                                             return eval(formula, {"__builtins__": None}, ctx)
                                         
-                                        popt, _ = curve_fit(f, fit_x, fit_y, p0=[1.0]*len(params_found))
-                                        x_range = np.linspace(min(fit_x), max(fit_x), 100)
+                                        popt, _ = curve_fit(f, fit_x_clean, fit_y_clean, p0=[1.0]*len(params_found))
+                                        x_range = np.linspace(fit_cfg["range_min"], fit_cfg["range_max"], 100)
                                         
-                                        # 凡例用のラベル作成
-                                        label_parts = []
-                                        for name, val in zip(params_found, popt):
-                                            label_parts.append(f"{name}={val:.3f}")
-                                        fit_label = f"Fit: {formula} ({', '.join(label_parts)})"
-                                        
-                                        ax.plot(x_range, f(x_range, *popt), "--", color="red", alpha=0.8, label=fit_label)
+                                        label_parts = [f"{name}={val:.3f}" for name, val in zip(params_found, popt)]
+                                        fit_label = f"Fit({target_col}): {formula} ({', '.join(label_parts)})"
+                                        ax.plot(x_range, f(x_range, *popt), "--", color=fit_cfg["color"], alpha=0.8, label=fit_label)
                             except Exception as e:
-                                st.error(f"フィッティングに失敗しました: {e}")
+                                st.error(f"フィッティング失敗 ({target_col}): {e}")
                 
                 if xmin_val is not None: ax.set_xlim(left=xmin_val)
                 if xmax_val is not None: ax.set_xlim(right=xmax_val)
@@ -575,7 +586,7 @@ if df is not None:
                     l_all.extend(l)
                 
                 # y_axesが1つでも、フィッティングがある場合は表示したい
-                if h_all and (len(y_axes) > 1 or fit_config.get("type") != "なし"):
+                if h_all and (len(y_axes) > 1 or len(st.session_state.get("fittings", [])) > 0):
                     ax.legend(h_all, l_all)
             elif chart_type == "ヒストグラム":
                 ax.legend()
