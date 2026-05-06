@@ -125,7 +125,7 @@ with st.sidebar:
         st.header("② グラフの種類と軸の選択")
         chart_type = st.selectbox("グラフの種類の選択", [
             "散布図", "折れ線グラフ", "棒グラフ", "複合グラフ", "ヒストグラム", "円グラフ", "箱ひげ図", "バイオリンプロット"
-        ], index=0)
+        ], index=0, key="chart_type_selector_v1")
         
         # 軸の選択
         if chart_type in ["散布図","折れ線グラフ", "棒グラフ", "複合グラフ"]:
