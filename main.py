@@ -141,7 +141,7 @@ with st.sidebar:
         elif chart_type == "ヒストグラム":
             x_axis = None
             y_axes = st.multiselect("データ(対象の列)", df.columns, default=[df.columns[0]])
-            hist_bins = st.number_input("Bins (階級数)", 1, 100, 20, step=1)
+            hist_bins = st.number_input("階級数 (Bins)", 1, 100, 20, step=1)
         else: # 箱ひげ図, バイオリンプロット
             x_axis = None
             y_axes = st.multiselect("データ(対象の列)", df.columns, default=df.columns.tolist()[:3])
@@ -187,17 +187,19 @@ with st.sidebar:
                     st.write(f"**{col}**")
                     if chart_type == "複合グラフ":
                         c_typ, c_col, c_siz, c_leg = st.columns([2, 1, 1, 1])
-                        p_type = c_typ.selectbox("Type", ["Line", "Scatter", "Bar"], key=f"type_{col}")
+                        type_map = {"折れ線": "Line", "散布図": "Scatter", "棒グラフ": "Bar"}
+                        p_type_label = c_typ.selectbox("種類", list(type_map.keys()), key=f"type_{col}")
+                        p_type = type_map[p_type_label]
                     else:
                         c_col, c_siz, c_leg = st.columns([1, 1, 1])
                         p_type = "Line" if chart_type == "折れ線グラフ" else ("Scatter" if chart_type == "散布図" else "Bar")
                     
-                    p_color = c_col.color_picker("Color", default_colors[i % len(default_colors)], key=f"color_{col}")
+                    p_color = c_col.color_picker("色", default_colors[i % len(default_colors)], key=f"color_{col}")
                     if p_type == "Bar":
-                        p_size = c_siz.number_input("Width", 0.1, 2.0, 1.0, step=0.1, key=f"size_{col}")
+                        p_size = c_siz.number_input("太さ", 0.1, 2.0, 1.0, step=0.1, key=f"size_{col}")
                     else:
-                        p_size = c_siz.number_input("Size", 1.0, 50.0, 8.0 if p_type == "Scatter" else 3.0, step=1.0, key=f"size_{col}")
-                    p_leg = c_leg.checkbox("Leg\nend", value=True, key=f"leg_{col}")
+                        p_size = c_siz.number_input("サイズ", 1.0, 50.0, 8.0 if p_type == "Scatter" else 3.0, step=1.0, key=f"size_{col}")
+                    p_leg = c_leg.checkbox("凡例", value=True, key=f"leg_{col}")
                     y_configs[col] = {"type": p_type, "color": p_color, "size": p_size, "show_legend": p_leg}
 
             active_ids = {1}
@@ -223,8 +225,8 @@ with st.sidebar:
                     a_max = c_ma.number_input(f"最大範囲", value=None, step=1.0, format="%g", key=f"amax_{idx}")
                     
                     c_fl, c_ft = st.columns(2)
-                    a_font_l = c_fl.number_input(f"軸名前FS", 10, 40, 18, key=f"afont_l_{idx}")
-                    a_font_t = c_ft.number_input("目盛りFS", 8, 30, 14, key=f"afont_t_{idx}")
+                    a_font_l = c_fl.number_input("名前サイズ", 10, 40, 18, key=f"afont_l_{idx}")
+                    a_font_t = c_ft.number_input("目盛りサイズ", 8, 30, 14, key=f"afont_t_{idx}")
                     
                     c_maj, c_min = st.columns(2)
                     a_maj_step = c_maj.number_input("主目盛り間隔", value=None, step=1.0, key=f"amaj_{idx}")
